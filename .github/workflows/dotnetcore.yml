@@ -52,6 +52,8 @@ jobs:
         name: url
     - name: set url
       run: echo "::set-env name=UPLOAD_URL::$(cat url/url.txt)"
+      env:
+        ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
     - name: ${{ matrix.os }} - Upload Release Asset
       uses: actions/upload-release-asset@v1.0.1
       env:
