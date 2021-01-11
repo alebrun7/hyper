@@ -20,7 +20,7 @@ CMD="/var/inhaus/hyper/hyper /dev/ttyUSB_ZStickGen5"
 case "$1" in
     start)
         log_daemon_msg "Starting hyper..."
-		start-stop-daemon --start --pidfile $PIDFILE --make-pidfile --background --quiet -g $GROUP --chuid $USER --chdir $CWD --exec /usr/bin/screen -- -c /root/dev/screenrc.conf -DmSL 'hyper' $CMD
+		start-stop-daemon --start --pidfile $PIDFILE --make-pidfile --background --quiet -g $GROUP --chuid $USER --chdir $CWD --exec $CMD
         log_end_msg $?
         ;;
     stop)
@@ -31,7 +31,7 @@ case "$1" in
     restart)
         log_daemon_msg "Restarting hyper..."
 		start-stop-daemon --stop --retry 5 --signal 2 --pidfile $PIDFILE
-        start-stop-daemon --start --pidfile $PIDFILE --make-pidfile --background --quiet -g $GROUP --chuid $USER --chdir $CWD --exec /usr/bin/screen -- -c /root/dev/screenrc.conf -DmSL 'hyper' $CMD
+        start-stop-daemon --start --pidfile $PIDFILE --make-pidfile --background --quiet -g $GROUP --chuid $USER --chdir $CWD --exec $CMD
         log_end_msg $?
         ;;
     *)

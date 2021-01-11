@@ -130,6 +130,7 @@ if os.path.exists('/var/inhaus/hyper/logs'):
     shutil.copytree('/var/inhaus/hyper/logs', './logs')
 if os.path.exists('/var/inhaus/hyper/events.db'):
     shutil.copyfile('/var/inhaus/hyper/events.db', './events.db')
+
 print("done")
 
 #delete hyper folder
@@ -145,6 +146,8 @@ if os.path.exists('./logs'):
     shutil.copytree('./logs', '/var/inhaus/hyper/logs')
 if os.path.exists('./events.db'):
     shutil.copyfile('./events.db', '/var/inhaus/hyper/events.db')
+else:
+    open('/var/inhaus/hyper/events.db', 'a').close()
 print("done")
 
 remove_temp()
