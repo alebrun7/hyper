@@ -56,8 +56,8 @@ def remove_inhausUDP_cronjob():
 
 
 hyper_version_path = "/var/inhaus/hyper/version.txt"
-hyper_version_remote_url = 'https://api.github.com/repos/jimzrt/hyper/releases/latest'
-hyper_latest_url = 'https://github.com/jimzrt/hyper/releases/latest/download/publishlinux-arm.tar.xz'
+hyper_version_remote_url = 'https://api.github.com/repos/AzadAtes/hyper/releases/latest'
+hyper_latest_url = 'https://github.com/AzadAtes/hyper/releases/latest/download/publishlinux-arm.tar.xz'
 default_com = "/dev/ttyUSB_ZStickGen5"
 
 if len(sys.argv) > 1:
