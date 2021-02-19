@@ -10,19 +10,27 @@ namespace ClientTCP
 
         static void Main(string[] args)
         {
+            const int port = 5432;
             string address = "127.0.0.1";
             if (args.Length > 0)
                 address = args[0];
 
-            var client = new TCPClient(address, 5432);
+            var client = new TCPClient(address, port);
 
             // Connect the client
-            Console.Write("Client connecting...");
-            client.ConnectAsync();
-            Console.WriteLine("Done!");
+            Console.WriteLine("Client connecting to {0}:{1}...", address, port);
+            bool connected = client.Connect();
+            if (connected)
+            {
+                Console.WriteLine("Done!");
+            }
+            else
+            {
+                Console.WriteLine("Connection failed!");
+            }
 
 
-            while (true)
+            while (connected)
             {
                 string line = Console.ReadLine();
                 if (!string.IsNullOrEmpty(line))
