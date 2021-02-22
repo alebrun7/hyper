@@ -38,7 +38,7 @@
 
 -   deviceName: FGDW002 - Fibaro Door Window Sensor 1
     manufacturerId: 271
-    productTypeId: 1792
+    productTypeId: 1792 # 0x700
     groups:
     # send basic
         1: 1
@@ -55,9 +55,9 @@
         51_2: 0
 
 # ZW100 Multisensor 6 1.12
-# https://www.cd-jackson.com/index.php/zwave/zwave-device-database/zwave-device-list/devicesummary/778
+# https://www.opensmarthouse.org/zwavedatabase/73
 -   deviceName: ZW100 Multisensor 6
-    manufacturerId: 134
+    manufacturerId: 134 # 0x0086
     productTypeId: 2
     groups:
         1: 1
@@ -74,9 +74,10 @@
         # Temperature=32
         # Humidity=64
         # Light=128
-        101_4: 97 
+        101_4: 1
         # Group 1 Report Interval
         111_4: 3600
+    wakeup: 3600
 
 # FGWP102 Metered Wall Plug Switch
 # https://www.cd-jackson.com/index.php/zwave/zwave-device-database/zwave-device-list/devicesummary/513

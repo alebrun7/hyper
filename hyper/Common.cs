@@ -294,42 +294,61 @@ namespace hyper
             }
             if (config.wakeup != 0)
             {
-                // var wakeupSet = SetWakeup(controller, nodeId, config.wakeup);
-                //  if (wakeupSet)
-                //  {
-                //GetWakeUp(controller, nodeId);
-                //   }
+                GetWakeUp(controller, nodeId);
+                var wakeupSet = SetWakeUp(controller, nodeId, config.wakeup);
+                if (wakeupSet)
+                {
+                    GetWakeUp(controller, nodeId);
+                }
             }
 
             return true;
         }
 
-        public static bool SetWakeup(Controller controller, byte nodeId, int configValue)
+        public static bool SetWakeUp(Controller controller, byte nodeId, int configValue)
         {
             Common.logger.Info("Set Wakeup - value " + configValue);
-            COMMAND_CLASS_WAKE_UP.WAKE_UP_INTERVAL_SET cmd = new COMMAND_CLASS_WAKE_UP.WAKE_UP_INTERVAL_SET();
-            cmd.nodeid = nodeId;
-            cmd.seconds = Tools.GetBytes(configValue);
-            Console.WriteLine(cmd.seconds[0]);
-            Console.WriteLine(cmd.seconds[1]);
-            Console.WriteLine(cmd.seconds[2]);
-            Console.WriteLine(cmd.seconds[3]);
+            var cmd = new COMMAND_CLASS_WAKE_UP_V2.WAKE_UP_INTERVAL_SET
+            {
+                nodeid = nodeId,
+                seconds = Tools.GetBytes(configValue).Skip(1).ToArray()
+            };
+            Common.logger.Debug($"value is [{cmd.seconds[0]},{cmd.seconds[1]},{cmd.seconds[2]}]");
             var setWakeup = controller.SendData(nodeId, cmd, Common.txOptions);
             return setWakeup.TransmitStatus == TransmitStatuses.CompleteOk;
         }
 
         public static bool GetWakeUp(Controller controller, byte nodeId)
         {
-            var cmd = new COMMAND_CLASS_WAKE_UP.WAKE_UP_INTERVAL_GET();
-            var result = controller.RequestData(nodeId, cmd, Common.txOptions, new COMMAND_CLASS_WAKE_UP.WAKE_UP_INTERVAL_REPORT(), 20000);
+            var cmd = new COMMAND_CLASS_WAKE_UP_V2.WAKE_UP_INTERVAL_GET();
+            var result = controller.RequestData(nodeId, cmd, Common.txOptions, new COMMAND_CLASS_WAKE_UP_V2.WAKE_UP_INTERVAL_REPORT(), 20000);
             if (result)
             {
-                var rpt = (COMMAND_CLASS_WAKE_UP.WAKE_UP_INTERVAL_REPORT)result.Command;
-                logger.Info("wake up interval: " + Tools.GetInt32(rpt.seconds));
+                var rpt = (COMMAND_CLASS_WAKE_UP_V2.WAKE_UP_INTERVAL_REPORT)result.Command;
+                Common.logger.Info("wake up interval: " + Tools.GetInt32(rpt.seconds));
             }
             else
             {
-                Common.logger.Info("Could Not get wake up!!");
+                Common.logger.Warn($"Could not get wake up interval!!");
+            }
+            return result;
+        }
+
+        public static bool GetWakeUpCapabilities(Controller controller, byte nodeId)
+        {
+            var cmd = new COMMAND_CLASS_WAKE_UP_V2.WAKE_UP_INTERVAL_CAPABILITIES_GET();
+            var result = controller.RequestData(nodeId, cmd, Common.txOptions, new COMMAND_CLASS_WAKE_UP_V2.WAKE_UP_INTERVAL_CAPABILITIES_REPORT(), 20000);
+            if (result)
+            {
+                var rpt = (COMMAND_CLASS_WAKE_UP_V2.WAKE_UP_INTERVAL_CAPABILITIES_REPORT)result.Command;
+                logger.Info("wake up minimumWakeUpIntervalSeconds: " + Tools.GetInt32(rpt.minimumWakeUpIntervalSeconds));
+                logger.Info("wake up maximumWakeUpIntervalSeconds: " + Tools.GetInt32(rpt.maximumWakeUpIntervalSeconds));
+                logger.Info("wake up defaultWakeUpIntervalSeconds: " + Tools.GetInt32(rpt.defaultWakeUpIntervalSeconds));
+                logger.Info("wake up wakeUpIntervalStepSeconds: " + Tools.GetInt32(rpt.wakeUpIntervalStepSeconds));
+            }
+            else
+            {
+                Common.logger.Warn("Could Not get wake up capabilities!!");
             }
             return result;
         }
@@ -389,6 +408,7 @@ namespace hyper
                 return false;
             }
         }
+
 
         public static bool AssociationContains(Controller controller, byte nodeId, byte groupIdentifier, byte member)
         {
