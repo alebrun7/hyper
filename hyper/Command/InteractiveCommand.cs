@@ -75,9 +75,8 @@ namespace hyper
             var batteryRegex = new Regex(@$"^battery\s*({oneTo255Regex})");
             var pingRegex = new Regex(@$"^ping\s*({oneTo255Regex})");
             var configRegex = new Regex(@$"^config\s*({oneTo255Regex})\s*(!)?");
-            var getWakeUpRegex = new Regex(@$"^getwakeup\s*({oneTo255Regex})");
-            var getWakeUpCapRegex = new Regex(@$"^getwakeupcap\s*({oneTo255Regex})");
-            var setWakeUpRegex = new Regex(@$"^setwakeup\s*({oneTo255Regex})\s*([0-9]+)");
+            var wakeUpRegex = new Regex(@$"^wakeup\s*({oneTo255Regex})\s*([0-9]+)?");
+            var wakeUpCapRegex = new Regex(@$"^wakeupcap\s*({oneTo255Regex})");
             var replaceRegex = new Regex(@$"^replace\s*({oneTo255Regex})");
             var basicRegex = new Regex(@$"^(basic|binary)\s*({oneTo255Regex})\s*(false|true)");
             var basicGetRegex = new Regex(@$"^(basic|binary)\s*({oneTo255Regex})");
@@ -380,14 +379,11 @@ namespace hyper
                             currentCommand = new ConfigCommand(Program.controller, nodeId, Program.configList, configRegex.Match(configVal).Groups[2].Value == "!");
                             break;
                         }
-                    case var cmd when getWakeUpRegex.IsMatch(cmd):
-                        GetWakeUpInterval(getWakeUpRegex, cmd);
+                    case var cmd when wakeUpRegex.IsMatch(cmd):
+                        WakeUp(wakeUpRegex, cmd);
                         break;
-                    case var cmdVal when getWakeUpCapRegex.IsMatch(cmdVal):
-                        GetWakeUpCapabilities(getWakeUpCapRegex, cmdVal);
-                        break;
-                    case var cmdVal when setWakeUpRegex.IsMatch(cmdVal):
-                        SetWakeUpInterval(setWakeUpRegex, cmdVal);
+                    case var cmdVal when wakeUpCapRegex.IsMatch(cmdVal):
+                        GetWakeUpCapabilities(wakeUpCapRegex, cmdVal);
                         break;
                     case var replaceVal when replaceRegex.IsMatch(replaceVal):
                         {
@@ -426,31 +422,31 @@ namespace hyper
             return true;
         }
 
-        private static void SetWakeUpInterval(Regex setWakeupRegex, string cmdVal)
+        private static void WakeUp(Regex wakeUpRegex, string cmd)
         {
-            string argNodeId = setWakeupRegex.Match(cmdVal).Groups[1].Value;
-            string argTimeoutValue = setWakeupRegex.Match(cmdVal).Groups[2].Value;
-            byte nodeId = byte.Parse(argNodeId);
-            int timeoutValue = int.Parse(argTimeoutValue);
-            bool success = Common.SetWakeUp(Program.controller, nodeId, timeoutValue);
-            if (success)
+            var groups = wakeUpRegex.Match(cmd).Groups;
+            byte nodeId = byte.Parse(groups[1].Value);
+            string argIntervalSeconds = groups[2].Value;
+            if (string.IsNullOrEmpty(argIntervalSeconds))
             {
                 Common.GetWakeUp(Program.controller, nodeId);
             }
+            else
+            {
+                int timeoutValue = int.Parse(argIntervalSeconds);
+                bool success = Common.SetWakeUp(Program.controller, nodeId, timeoutValue);
+                if (success)
+                {
+                    Common.GetWakeUp(Program.controller, nodeId);
+                }
+            }
         }
 
-        private static void GetWakeUpCapabilities(Regex getWakeUpCapRegex, string cmdVal)
+        private static void GetWakeUpCapabilities(Regex wakeUpCapRegex, string cmdVal)
         {
-            string argNodeId = getWakeUpCapRegex.Match(cmdVal).Groups[1].Value;
+            string argNodeId = wakeUpCapRegex.Match(cmdVal).Groups[1].Value;
             byte nodeId = byte.Parse(argNodeId);
             Common.GetWakeUpCapabilities(Program.controller, nodeId);
-        }
-
-        private static void GetWakeUpInterval(Regex getWakeUpRegex, string cmd)
-        {
-            string argNodeId = getWakeUpRegex.Match(cmd).Groups[1].Value;
-            byte nodeId = byte.Parse(argNodeId);
-            Common.GetWakeUp(Program.controller, nodeId);
         }
 
         public override void Stop()
