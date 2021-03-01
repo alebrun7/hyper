@@ -430,7 +430,7 @@ namespace hyper
                 else
                 {
                     Common.logger.Info(member + " is not a member of association group " + groupIdentifier);
-                    return true;
+                    return false;
                 }
             }
             else
