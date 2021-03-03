@@ -310,7 +310,7 @@ namespace hyper
             Common.logger.Info("Set Wakeup - value " + configValue);
             var cmd = new COMMAND_CLASS_WAKE_UP_V2.WAKE_UP_INTERVAL_SET
             {
-                nodeid = nodeId,
+                nodeid = 1, //node to send the wake up notification, for us always controller with id 1
                 seconds = Tools.GetBytes(configValue).Skip(1).ToArray()
             };
             Common.logger.Debug($"value is [{cmd.seconds[0]},{cmd.seconds[1]},{cmd.seconds[2]}]");
@@ -325,7 +325,8 @@ namespace hyper
             if (result)
             {
                 var rpt = (COMMAND_CLASS_WAKE_UP_V2.WAKE_UP_INTERVAL_REPORT)result.Command;
-                Common.logger.Info("wake up interval: " + Tools.GetInt32(rpt.seconds));
+                Common.logger.Info("wake up interval: {0}, nodeid (to send notifications): {1}",
+                    Tools.GetInt32(rpt.seconds), rpt.nodeid);
             }
             else
             {
