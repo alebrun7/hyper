@@ -111,6 +111,7 @@ namespace hyper
             {
                 Common.logger.Info("usage:");
                 Common.logger.Info("./hyper [serialPort] [command]");
+                Common.logger.Info("or ./hyper udp:remote_ip:port [command]");
                 Common.logger.Info("valid commands:");
                 Common.logger.Info("r/replace, c/config, i/include, e/exclude, l/listen, p/ping");
                 return;

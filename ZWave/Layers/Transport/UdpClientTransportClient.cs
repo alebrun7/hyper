@@ -29,7 +29,7 @@ namespace ZWave.Layers.Transport
 
         public override bool IsOpen
         {
-            get { return _port.Client.Connected; }
+            get { return (_port != null) && _port.Client.Connected; }
         }
 
         public UdpClientTransportClient(Action<DataChunk> transmitCallback)
@@ -99,7 +99,8 @@ namespace ZWave.Layers.Transport
                     }
                     else
                     {
-                        _port = new UdpClient(AddressFamily.InterNetwork);
+                        //[AL] hard coded hyper local port
+                        _port = new UdpClient(4123, AddressFamily.InterNetwork);
                     }
                     "{0:X2} {1} {2}@{3} {4}"._DLOG(SessionId, ApiType, _dataSource.SourceName, _dataSource.Port, _port.Client.Connected);
                     try
@@ -109,7 +110,9 @@ namespace ZWave.Layers.Transport
                         {
                             attempts--;
                             Thread.Sleep(100);
-                            _port.Connect(_dataSource.SourceName, 4123); //harcoded again!!!!!!
+                            //_port.Connect(_dataSource.SourceName, 4123); //harcoded again!!!!!!
+                            //remote port is configurable
+                            _port.Connect(_dataSource.SourceName, _dataSource.Port);
                             "{0:X2} {1} {2}@{3} {4}"._DLOG(SessionId, ApiType, _dataSource.SourceName, _dataSource.Port, _port.Client.Connected);
                         }
                         if (_port.Client.Connected)

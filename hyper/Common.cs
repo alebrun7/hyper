@@ -28,19 +28,33 @@ namespace hyper
 
         public static bool InitController(string port, out Controller controller, out string errorMessage)
         {
+            ITransportLayer transportLayer = new SerialPortTransportLayer();
+            IDataSource dataSource = new SerialPortDataSource(port, BaudRates.Rate_115200);
+            if (port.StartsWith("udp:"))
+            {
+                //notizen: daten werden zu host:4123 geschickt (siehe UdpClientTransportClient.cs(112) )
+                //was wird aus port? vermutlich der lokale port zum lauschen.
+                //now, code is changed and the destination port is configurable
+                //4123 is used for incoming local port
+
+                transportLayer = new UdpClientTransportLayer();
+                var address = port.Split(":");
+                var host = address[1];
+                int udpPort = int.Parse(address[2]);
+                dataSource = new SocketDataSource(host, udpPort);
+            }
             BasicApplicationLayer AppLayer = new BasicApplicationLayer(
                 new SessionLayer(),
                 new BasicFrameLayer(),
-                new SerialPortTransportLayer());
+                transportLayer);
             var _controller = AppLayer.CreateController();
-            var serialPortDataSource = new SerialPortDataSource(port, BaudRates.Rate_115200);
-            var controllerConnected = _controller.Connect(serialPortDataSource);
+            var controllerConnected = _controller.Connect(dataSource);
             if (controllerConnected != CommunicationStatuses.Done)
             {
                 for (int i = 2; i < 5; i++)
                 {
                     Common.logger.Info("Serialport - connect: try {0}", i);
-                    controllerConnected = _controller.Connect(serialPortDataSource);
+                    controllerConnected = _controller.Connect(dataSource);
                     if (controllerConnected == CommunicationStatuses.Done)
                     {
                         break;
