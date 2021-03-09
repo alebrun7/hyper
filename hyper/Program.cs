@@ -23,7 +23,10 @@ namespace hyper
         private static void SetupInputs(InputManager inputManager)
         {
             var configuration = LogManager.Configuration;
-
+            if (configuration == null)
+            {
+                configuration = new LoggingConfiguration();
+            }
             var tcpTarget = new TCPInput(5432)
             {
                 Layout = @"${longdate} ${uppercase:${level}} ${message}"
