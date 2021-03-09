@@ -22,7 +22,7 @@ namespace hyper
 
         private static void SetupInputs(InputManager inputManager)
         {
-            var configuration = new LoggingConfiguration();
+            var configuration = LogManager.Configuration;
 
             var tcpTarget = new TCPInput(5432)
             {
@@ -54,9 +54,12 @@ namespace hyper
             configuration.AddTarget(consoleTarget);
             configuration.AddTarget(tcpTarget);
 
-            configuration.AddRuleForAllLevels(fileTarget);
-            configuration.AddRuleForAllLevels(consoleTarget);
-            configuration.AddRuleForAllLevels(tcpTarget);
+
+
+            SetTargetForRulesOrAddDefault(configuration, fileTarget, "FileTarget");
+            SetTargetForRulesOrAddDefault(configuration, consoleTarget, "ConsoleInput");
+            SetTargetForRulesOrAddDefault(configuration, tcpTarget, "TCPInput");
+         
 
             LogManager.Configuration = configuration;
 
@@ -64,6 +67,22 @@ namespace hyper
             inputManager.AddInput(tcpTarget);
             var udpInput = new UDPInput(54322);
             inputManager.AddInput(udpInput);
+        }
+
+        private static void SetTargetForRulesOrAddDefault(LoggingConfiguration configuration, Target target, string ruleName)
+        {
+            var rules = configuration.LoggingRules.Where(rule => rule.RuleName == ruleName);
+            if (rules.IsNullOrEmpty())
+            {
+                configuration.AddRuleForAllLevels(target);
+            }
+            else
+            {
+                foreach (var r in rules)
+                {
+                    r.Targets.Add(target);
+                }
+            }
         }
 
         private static void SetupOutputs()
