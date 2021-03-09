@@ -22,11 +22,6 @@ namespace hyper
 
         private static void SetupInputs(InputManager inputManager)
         {
-            var configuration = LogManager.Configuration;
-            if (configuration == null)
-            {
-                configuration = new LoggingConfiguration();
-            }
             var tcpTarget = new TCPInput(5432)
             {
                 Layout = @"${longdate} ${uppercase:${level}} ${message}"
@@ -36,6 +31,16 @@ namespace hyper
                 Layout = @"${longdate} ${uppercase:${level}} ${message}"
             };
 
+            SetupLogging(tcpTarget, consoleTarget);
+
+            inputManager.AddInput(consoleTarget);
+            inputManager.AddInput(tcpTarget);
+            var udpInput = new UDPInput(54322);
+            inputManager.AddInput(udpInput);
+        }
+
+        private static void SetupLogging(Target tcpTarget, Target consoleTarget)
+        {
             var fileTarget = new FileTarget()
             {
                 Name = "FileTarget",
@@ -53,28 +58,21 @@ namespace hyper
                 CreateDirs = true
             };
 
-            configuration.AddTarget(fileTarget);
-            configuration.AddTarget(consoleTarget);
-            configuration.AddTarget(tcpTarget);
-
-
-
-            SetTargetForRulesOrAddDefault(configuration, fileTarget, "FileTarget");
-            SetTargetForRulesOrAddDefault(configuration, consoleTarget, "ConsoleInput");
-            SetTargetForRulesOrAddDefault(configuration, tcpTarget, "TCPInput");
-         
-
+            var configuration = LogManager.Configuration;
+            if (configuration == null)
+            {
+                configuration = new LoggingConfiguration();
+            }
+            AddTargetAndSetRules(configuration, fileTarget);
+            AddTargetAndSetRules(configuration, consoleTarget);
+            AddTargetAndSetRules(configuration, tcpTarget);
             LogManager.Configuration = configuration;
-
-            inputManager.AddInput(consoleTarget);
-            inputManager.AddInput(tcpTarget);
-            var udpInput = new UDPInput(54322);
-            inputManager.AddInput(udpInput);
         }
 
-        private static void SetTargetForRulesOrAddDefault(LoggingConfiguration configuration, Target target, string ruleName)
+        private static void AddTargetAndSetRules(LoggingConfiguration configuration, Target target)
         {
-            var rules = configuration.LoggingRules.Where(rule => rule.RuleName == ruleName);
+            configuration.AddTarget(target);
+            var rules = configuration.LoggingRules.Where(rule => rule.RuleName == target.Name);
             if (rules.IsNullOrEmpty())
             {
                 configuration.AddRuleForAllLevels(target);
