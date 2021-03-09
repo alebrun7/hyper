@@ -1,16 +1,13 @@
 ﻿using hyper.commands;
 using hyper.config;
+using hyper.Helper;
 using hyper.Input;
 using hyper.Inputs;
 using hyper.Output;
-using NLog;
-using NLog.Config;
-using NLog.Targets;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Utils;
 using ZWave.BasicApplication.Devices;
 
 namespace hyper
@@ -31,7 +28,7 @@ namespace hyper
                 Layout = @"${longdate} ${uppercase:${level}} ${message}"
             };
 
-            SetupLogging(tcpTarget, consoleTarget);
+            LoggingSetupHelper.SetupLogging(tcpTarget, consoleTarget);
 
             inputManager.AddInput(consoleTarget);
             inputManager.AddInput(tcpTarget);
@@ -39,52 +36,7 @@ namespace hyper
             inputManager.AddInput(udpInput);
         }
 
-        private static void SetupLogging(Target tcpTarget, Target consoleTarget)
-        {
-            var fileTarget = new FileTarget()
-            {
-                Name = "FileTarget",
-                Layout = @"${longdate} ${uppercase:${level}} ${message}",
-                AutoFlush = true,
-                FileName = "${basedir}/logs/log.${shortdate}.txt",
-                ArchiveFileName = "${basedir}/logs/archives/log.{#####}.zip",
-                ArchiveNumbering = ArchiveNumberingMode.DateAndSequence,
-                ConcurrentWrites = true,
-                ArchiveEvery = FileArchivePeriod.Day,
-                ArchiveOldFileOnStartup = true,
-                EnableArchiveFileCompression = true,
-                MaxArchiveFiles = 14,
-                OptimizeBufferReuse = true,
-                CreateDirs = true
-            };
 
-            var configuration = LogManager.Configuration;
-            if (configuration == null)
-            {
-                configuration = new LoggingConfiguration();
-            }
-            AddTargetAndSetRules(configuration, fileTarget);
-            AddTargetAndSetRules(configuration, consoleTarget);
-            AddTargetAndSetRules(configuration, tcpTarget);
-            LogManager.Configuration = configuration;
-        }
-
-        private static void AddTargetAndSetRules(LoggingConfiguration configuration, Target target)
-        {
-            configuration.AddTarget(target);
-            var rules = configuration.LoggingRules.Where(rule => rule.RuleName == target.Name);
-            if (rules.IsNullOrEmpty())
-            {
-                configuration.AddRuleForAllLevels(target);
-            }
-            else
-            {
-                foreach (var r in rules)
-                {
-                    r.Targets.Add(target);
-                }
-            }
-        }
 
         private static void SetupOutputs()
         {
