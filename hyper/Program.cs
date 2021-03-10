@@ -57,13 +57,11 @@ namespace hyper
             SetupInputs(inputManager);
             SetupOutputs();
 
-            //  Target.Register("MyFirst", typeof(MyNamespace.MyFirstTarget)); //OR, dynamic
-
             ICommand currentCommand = null;
 
-            Common.logger.Debug("==== ZWave Hyper Hyper 5000 ====");
-            Common.logger.Debug("-----------------------------------");
-            Common.logger.Debug("Loading device configuration database...");
+            Common.logger.Info("==== ZWave Hyper Hyper 5000 ====");
+            Common.logger.Info("-----------------------------------");
+            Common.logger.Info("Loading device configuration database...");
             if (!File.Exists("config.yaml"))
             {
                 Common.logger.Error("configuration file config.yaml does not exist!");
@@ -77,7 +75,7 @@ namespace hyper
             }
             Program.configList = config;
             Common.logger.Info("Got configuration for " + config.Count + " devices.");
-            Common.logger.Debug("-----------------------------------");
+            Common.logger.Info("-----------------------------------");
 
             if (args.Length < 1)
             {

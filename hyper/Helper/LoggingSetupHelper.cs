@@ -47,7 +47,7 @@ namespace hyper.Helper
             var rules = configuration.LoggingRules.Where(rule => rule.RuleName == target.Name);
             if (rules.IsNullOrEmpty())
             {
-                configuration.AddRuleForAllLevels(target);
+                configuration.AddRule(LogLevel.Info, LogLevel.Fatal, target);
             }
             else
             {

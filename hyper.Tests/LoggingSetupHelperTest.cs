@@ -63,14 +63,17 @@ namespace hyper.Tests
             var consoleRules = config.LoggingRules.Where(r => r.Targets.Contains(consoleFakeTarget));
             Assert.AreEqual(1, consoleRules.Count());
             Assert.IsTrue(consoleRules.First().Levels.Contains(LogLevel.Info));
+            Assert.IsFalse(consoleRules.First().Levels.Contains(LogLevel.Debug));
 
             var tcpRules = config.LoggingRules.Where(r => r.Targets.Contains(tcpInputFakeTarget));
             Assert.AreEqual(1, tcpRules.Count());
             Assert.IsTrue(tcpRules.First().Levels.Contains(LogLevel.Info));
+            Assert.IsFalse(tcpRules.First().Levels.Contains(LogLevel.Debug));
 
             var fileRules = config.LoggingRules.Where(r => r.Targets.First() != null && r.Targets.First().Name == "FileTarget");
             Assert.AreEqual(1, fileRules.Count());
             Assert.IsTrue(fileRules.First().Levels.Contains(LogLevel.Info));
+            Assert.IsFalse(fileRules.First().Levels.Contains(LogLevel.Debug));
         }
 
         [TestCleanup]
