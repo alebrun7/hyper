@@ -6,14 +6,17 @@ namespace ZWave.Layers.Transport
     public class SerialPortTransportLayer : TransportLayer
     {
         public override ITransportListener Listener { get; set; }
+
+        public TransportClientBase TransportClient { get; private set; }
+
         public override ITransportClient CreateClient(byte sessionId)
         {
-            SerialPortTransportClient ret = new SerialPortTransportClient(TransmitCallback)
+            TransportClient = new SerialPortTransportClient(TransmitCallback)
             {
                 SuppressDebugOutput = SuppressDebugOutput,
                 SessionId = sessionId
             };
-            return ret;
+            return TransportClient;
         }
 
         public static string[] GetDeviceNames()

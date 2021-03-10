@@ -1,12 +1,16 @@
 ﻿using hyper.config;
 using hyper.Helper;
+using hyper.Input;
 using NLog;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using Utils;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -26,9 +30,10 @@ namespace hyper
         public static TransmitOptions txOptions = TransmitOptions.TransmitOptionAcknowledge | TransmitOptions.TransmitOptionAutoRoute | TransmitOptions.TransmitOptionExplore;
         public static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
+
         public static bool InitController(string port, out Controller controller, out string errorMessage)
         {
-            ITransportLayer transportLayer = new SerialPortTransportLayer();
+            ITransportLayer transportLayer;
             IDataSource dataSource = new SerialPortDataSource(port, BaudRates.Rate_115200);
             if (port.StartsWith("udp:"))
             {
@@ -43,6 +48,11 @@ namespace hyper
                 int udpPort = int.Parse(address[2]);
                 dataSource = new SocketDataSource(host, udpPort);
             }
+            else {
+                transportLayer = new SerialPortTransportLayer();
+            }
+
+
             BasicApplicationLayer AppLayer = new BasicApplicationLayer(
                 new SessionLayer(),
                 new BasicFrameLayer(),
@@ -113,6 +123,14 @@ namespace hyper
             }
             controller = _controller;
             errorMessage = "";
+
+            var serialPortTransportLayer = transportLayer as SerialPortTransportLayer;
+            if (serialPortTransportLayer != null)
+            {
+                var multiPlexer = new UDPMultiplexer(serialPortTransportLayer.TransportClient);
+                multiPlexer.Start();
+            }
+
             return true;
         }
 

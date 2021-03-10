@@ -93,12 +93,20 @@ namespace ZWave.Layers.Transport
                 "{0:X2} {1} {2} >> {3}"._DLOG(SessionId, ApiType, DataSource.SourceName, Tools.GetHex(data));
             }
             var dc = new DataChunk(data, SessionId, true, ApiType);
-            if (_transmitCallback != null)
+
+            int ret = 0;
+
+            //TODO lock only if UDP Multiplexer in use
+            lock (_lockObject) //synchronize writes to serial port because of UDP Multiplexer
             {
-                _transmitCallback(dc);
+                if (_transmitCallback != null)
+                {
+                    _transmitCallback(dc);
+                }
+                ret = SerialPortProvider.Write(data, data.Length);
             }
 
-            return SerialPortProvider.Write(data, data.Length);
+            return ret;
         }
 
         private void DoWork()
