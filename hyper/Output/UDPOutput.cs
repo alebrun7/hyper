@@ -131,10 +131,10 @@ namespace hyper.Output
                     var diffInTimeSeconds = (currentTime - tempTime).TotalSeconds;
                     if (diffInTimeSeconds < 5 && tempValue == eventValue)
                     {
-                        Common.logger.Debug("same message or too soon! doing nothing");
+                        Common.logger.Info("same message or too soon! doing nothing");
                         if (tempKey != eventKey)
                         {
-                            Common.logger.Debug($"But different key: {tempKey} - {eventKey}");
+                            Common.logger.Info($"But different key: {tempKey} - {eventKey}");
                         }
                         return;
                     }
@@ -142,7 +142,7 @@ namespace hyper.Output
                     {
                         if ((tempKey == Enums.EventKey.STATE_CLOSED && eventKey == Enums.EventKey.BINARY) || (eventKey == Enums.EventKey.STATE_CLOSED && tempKey == Enums.EventKey.BINARY))
                         {
-                            Common.logger.Debug("after state close should not come binary! check device configuriaton. Ignoring");
+                            Common.logger.Info("after state close should not come binary! check device configuriaton. Ignoring");
                             return;
                         }
                         eventMap[srcNodeId] = (DateTime.Now, (eventKey, eventValue));

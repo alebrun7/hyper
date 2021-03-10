@@ -1,16 +1,13 @@
 ﻿using hyper.commands;
 using hyper.config;
+using hyper.Helper;
 using hyper.Input;
 using hyper.Inputs;
 using hyper.Output;
-using NLog;
-using NLog.Config;
-using NLog.Targets;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Utils;
 using ZWave.BasicApplication.Devices;
 
 namespace hyper
@@ -22,8 +19,6 @@ namespace hyper
 
         private static void SetupInputs(InputManager inputManager)
         {
-            var configuration = new LoggingConfiguration();
-
             var tcpTarget = new TCPInput(5432)
             {
                 Layout = @"${longdate} ${uppercase:${level}} ${message}"
@@ -33,38 +28,15 @@ namespace hyper
                 Layout = @"${longdate} ${uppercase:${level}} ${message}"
             };
 
-            var fileTarget = new FileTarget()
-            {
-                Name = "FileTarget",
-                Layout = @"${longdate} ${uppercase:${level}} ${message}",
-                AutoFlush = true,
-                FileName = "${basedir}/logs/log.${shortdate}.txt",
-                ArchiveFileName = "${basedir}/logs/archives/log.{#####}.zip",
-                ArchiveNumbering = ArchiveNumberingMode.DateAndSequence,
-                ConcurrentWrites = true,
-                ArchiveEvery = FileArchivePeriod.Day,
-                ArchiveOldFileOnStartup = true,
-                EnableArchiveFileCompression = true,
-                MaxArchiveFiles = 14,
-                OptimizeBufferReuse = true,
-                CreateDirs = true
-            };
-
-            configuration.AddTarget(fileTarget);
-            configuration.AddTarget(consoleTarget);
-            configuration.AddTarget(tcpTarget);
-
-            configuration.AddRuleForAllLevels(fileTarget);
-            configuration.AddRuleForAllLevels(consoleTarget);
-            configuration.AddRuleForAllLevels(tcpTarget);
-
-            LogManager.Configuration = configuration;
+            LoggingSetupHelper.SetupLogging(tcpTarget, consoleTarget);
 
             inputManager.AddInput(consoleTarget);
             inputManager.AddInput(tcpTarget);
             var udpInput = new UDPInput(54322);
             inputManager.AddInput(udpInput);
         }
+
+
 
         private static void SetupOutputs()
         {
@@ -85,13 +57,11 @@ namespace hyper
             SetupInputs(inputManager);
             SetupOutputs();
 
-            //  Target.Register("MyFirst", typeof(MyNamespace.MyFirstTarget)); //OR, dynamic
-
             ICommand currentCommand = null;
 
-            Common.logger.Debug("==== ZWave Hyper Hyper 5000 ====");
-            Common.logger.Debug("-----------------------------------");
-            Common.logger.Debug("Loading device configuration database...");
+            Common.logger.Info("==== ZWave Hyper Hyper 5000 ====");
+            Common.logger.Info("-----------------------------------");
+            Common.logger.Info("Loading device configuration database...");
             if (!File.Exists("config.yaml"))
             {
                 Common.logger.Error("configuration file config.yaml does not exist!");
@@ -105,7 +75,7 @@ namespace hyper
             }
             Program.configList = config;
             Common.logger.Info("Got configuration for " + config.Count + " devices.");
-            Common.logger.Debug("-----------------------------------");
+            Common.logger.Info("-----------------------------------");
 
             if (args.Length < 1)
             {
