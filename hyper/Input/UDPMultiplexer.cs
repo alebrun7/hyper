@@ -12,11 +12,13 @@ namespace hyper.Input
 {
     internal class UDPMultiplexer
     {
-        readonly string address = "127.0.0.1";
+        readonly string destAddress = "127.0.0.1";
         readonly int destPort = 3001;
         readonly int incomingPort = 4123;
+
+        IPEndPoint destEndPoint;
         TransportClientBase _transportClient;
-        UdpClient _port;
+        private Socket outputSocket;
         Action<DataChunk, bool> origReceiveDataCallback;
         static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
@@ -24,12 +26,13 @@ namespace hyper.Input
         {
             _transportClient = transportClient;
         }
+
         public void Start()
         {
-            _port = new UdpClient(incomingPort, AddressFamily.InterNetwork);
-            logger.Info($"UdpClient created, listening on port {incomingPort}");
-            _port.Connect(address, destPort);
-            logger.Info($"UdpClient will write to {address}:{destPort}");
+            IPAddress ipAddress = IPAddress.Parse(destAddress);
+            destEndPoint = new IPEndPoint(ipAddress, destPort);
+            outputSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            logger.Info($"UdpClient will write to {destAddress}:{destPort}");
 
             Listen();
 
@@ -43,20 +46,22 @@ namespace hyper.Input
         {
             logger.Debug($"UdpMultiplexer sends {dataChunk.DataBufferLength} bytes");
             origReceiveDataCallback(dataChunk, isFromFile);
-            _port.Send(dataChunk.GetDataBuffer(), dataChunk.DataBufferLength);
+            outputSocket.SendTo(dataChunk.GetDataBuffer(), destEndPoint);
         }
 
         void Listen()
         {
+            var inputPort = new UdpClient(incomingPort, AddressFamily.InterNetwork);
+            logger.Info($"UdpClient created, listening on port {incomingPort}");
+
             try
             {
-                logger.Debug("UDPMultiplexer: extra debug output...");
                 logger.Info("UDPMultiplexer: start listening...");
                 Task udplistenTask = Task.Run(async () =>
                 {
                     while (true)
                     {
-                        UdpReceiveResult received = await _port.ReceiveAsync();
+                        UdpReceiveResult received = await inputPort.ReceiveAsync();
                         byte[] data = received.Buffer;
                         logger.Debug($"UdpMultiplexer received {data.Length} bytes");
                         _transportClient.WriteData(data);
