@@ -34,6 +34,8 @@ namespace hyper
             inputManager.AddInput(tcpTarget);
             var udpInput = new UDPInput(54322);
             inputManager.AddInput(udpInput);
+
+            consoleTarget.StartReadingInput();
         }
 
 

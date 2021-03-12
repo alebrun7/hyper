@@ -26,6 +26,11 @@ namespace hyper.Inputs
         public ConsoleInput()
         {
             Name = "ConsoleInput";
+            
+        }
+
+        public void StartReadingInput()
+        {
             backgroundTask = new Task(() =>
             {
                 while (true)
@@ -41,6 +46,11 @@ namespace hyper.Inputs
                         lock (_syncObj)
                             messageQueue.Add(message);
                         //       resetEvent.Set();
+                    }
+                    if (message == null)
+                    {
+                        Common.logger.Info("ConsoleInput: running as a service or in similar conditions, no input.");
+                        break;
                     }
                     //if (CanRead)
                     //{
