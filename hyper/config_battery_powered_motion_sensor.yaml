@@ -75,7 +75,7 @@
         # Temperature=32
         # Humidity=64
         # Light=128
-        101_4: 97
+        101_4: 1
         # Group 1 Report Interval
         # 111_4: 3600
     wakeup: 3600
