@@ -1,1 +1,2 @@
-dotnet publish -c Release --self-contained -r linux-arm /p:PublishTrimmed=true
+REM run in solution directory (hyper, not hyper/hyper)
+dotnet publish -c Release --self-contained -r linux-arm -o ./publishlinux-arm /p:PublishTrimmed=true
