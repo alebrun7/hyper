@@ -19,18 +19,10 @@ namespace ClientTCP
 
             // Connect the client
             Console.WriteLine("Client connecting to {0}:{1}...", address, port);
-            bool connected = client.Connect();
-            if (connected)
-            {
-                Console.WriteLine("Done!");
-            }
-            else
-            {
-                Console.WriteLine("Connection failed!");
-            }
+            client.ConnectAsync();
+            Console.WriteLine("Done!");
 
-
-            while (connected)
+            while (true)
             {
                 string line = Console.ReadLine();
                 if (!string.IsNullOrEmpty(line))

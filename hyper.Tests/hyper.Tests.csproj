@@ -1,9 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+	<TargetFramework>netcoreapp3.1</TargetFramework>
+	<RuntimeIdentifiers>win-x64;win-arm;ubuntu-x64;debian-arm;linux-arm</RuntimeIdentifiers>
 
-    <IsPackable>false</IsPackable>
+	<IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
