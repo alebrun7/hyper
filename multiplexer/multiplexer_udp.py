@@ -142,14 +142,16 @@ def client_to_target(client, udp_socket):
             return            
             
 def write_to_clients(clients, text):
+    print_debug('write data to client(s): %s' % text)
     for client in clients:
         os.write(client["fd"], text)
         
 def write_to_target(x):
+    print_debug('write data to target: %s' % x)
     udp_socket.sendto(x,(Hyper_UDP_IP,Hyper_UDP_Port))
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-c", "--client_count", help="number of fake ports (default=1)" ,type=int, default=2, metavar='N')
+parser.add_argument("-c", "--client_count", help="number of fake ports (default=1)" ,type=int, default=1, metavar='N')
 parser.add_argument("-f", "--fake_bus_name", help="name of fake bus prefix (default=/dev/ttyS0fake)", default='/dev/ttyS0fake')
 parser.add_argument("-q", "--quiet", help="no debug output", action='store_true')
 
