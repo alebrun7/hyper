@@ -31,7 +31,9 @@ namespace hyper
         public static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
 
-        public static bool InitController(string port, out Controller controller, out string errorMessage)
+        public static bool InitController(
+            string port, bool startUdpMultiplexer,
+            out Controller controller, out string errorMessage)
         {
             ITransportLayer transportLayer;
             IDataSource dataSource = new SerialPortDataSource(port, BaudRates.Rate_115200);
@@ -124,11 +126,14 @@ namespace hyper
             controller = _controller;
             errorMessage = "";
 
-            var serialPortTransportLayer = transportLayer as SerialPortTransportLayer;
-            if (serialPortTransportLayer != null)
+            if (startUdpMultiplexer)
             {
-                var multiPlexer = new UDPMultiplexer(serialPortTransportLayer.TransportClient);
-                multiPlexer.Start();
+                var serialPortTransportLayer = transportLayer as SerialPortTransportLayer;
+                if (serialPortTransportLayer != null)
+                {
+                    var multiplexer = new UDPMultiplexer(serialPortTransportLayer.TransportClient);
+                    multiplexer.Start();
+                }
             }
 
             return true;

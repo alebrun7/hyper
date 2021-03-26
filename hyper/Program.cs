@@ -80,19 +80,18 @@ namespace hyper
             Common.logger.Info("Got configuration for " + config.Count + " devices.");
             Common.logger.Info("-----------------------------------");
 
-            if (args.Length < 1)
+            var startArgs = new StartArguments(args);
+            if (!startArgs.Valid)
             {
-                Common.logger.Info("usage:");
-                Common.logger.Info("./hyper [serialPort] [command]");
-                Common.logger.Info("or ./hyper udp:remote_ip:port [command]");
-                Common.logger.Info("valid commands:");
-                Common.logger.Info("r/replace, c/config, i/include, e/exclude, l/listen, p/ping");
+                startArgs.PrintUsage();
                 return;
             }
 
-            var port = args[0];
+            var port = startArgs.Port;
+            bool startUdpMultiplexer = startArgs.StartUdpMultiplexer;
             Common.logger.Info("Initialize Serialport: {0}", port);
-            var initController = Common.InitController(port, out Controller controller, out string errorMessage);
+            var initController = Common.InitController(port, startUdpMultiplexer,
+                out Controller controller, out string errorMessage);
             if (!initController)
             {
                 Common.logger.Error("Error connecting with port {0}! Error Mesage:", port);
@@ -104,7 +103,7 @@ namespace hyper
             Common.logger.Info("Included nodes: {0}", controller.IncludedNodes.Length);
             Common.logger.Info("-----------------------------------");
 
-            currentCommand = new InteractiveCommand(string.Join(" ", args.Skip(1)), inputManager);
+            currentCommand = new InteractiveCommand(startArgs.Command, inputManager);
             currentCommand.Start();
 
             /*if (args[1] == "r" || args[1] == "replace" || args[1] == "c" || args[1] == "config")
