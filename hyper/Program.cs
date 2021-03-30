@@ -7,6 +7,7 @@ using hyper.Output;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Ports;
 using System.Linq;
 using ZWave.BasicApplication.Devices;
 
@@ -88,10 +89,23 @@ namespace hyper
                 return;
             }
 
+            Controller controller = null;
+            string errorMessage = "";
+
             var port = args[0];
-            Common.logger.Info("Initialize Serialport: {0}", port);
-            var initController = Common.InitController(port, out Controller controller, out string errorMessage);
-            if (!initController)
+            bool initialized = false;
+            if (port == "auto")
+            {
+                //for easier debugging, not meant to be used in production
+                //port = SerialPort.GetPortNames().FirstOrDefault();
+                initialized = Common.InitControllerAuto(out controller, out errorMessage);
+//                initialized = Common.InitController(port, out controller, out errorMessage);
+            }
+            else
+            {
+                initialized = Common.InitController(port, out controller, out errorMessage);
+            }
+            if (!initialized)
             {
                 Common.logger.Error("Error connecting with port {0}! Error Mesage:", port);
                 Common.logger.Error(errorMessage);

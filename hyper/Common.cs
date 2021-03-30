@@ -4,6 +4,7 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Ports;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -26,8 +27,44 @@ namespace hyper
         public static TransmitOptions txOptions = TransmitOptions.TransmitOptionAcknowledge | TransmitOptions.TransmitOptionAutoRoute | TransmitOptions.TransmitOptionExplore;
         public static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
+        public static bool InitControllerAuto(out Controller controller, out string errorMessage)
+        { 
+            var ports = new List<string>();
+            string lastportfilename = "lastport.txt";
+            if (File.Exists(lastportfilename))
+            {
+                string lastport = File.ReadAllText(lastportfilename);
+                ports.Add(lastport);
+                Common.logger.Info("Initialize Serialport: trying last sucessfull port {0}", lastport);
+            }
+            //for (int i = 3; i < 10; ++i)
+            foreach (string portname in SerialPort.GetPortNames())
+            {
+                Common.logger.Info("Serial port found: {0}", portname);
+                //string portname = "COM" + i;
+                if (portname != ports.FirstOrDefault())
+                {
+                    ports.Add(portname);
+                }
+            }
+
+            controller = null;
+            errorMessage = string.Empty;
+            foreach (string port in ports)
+            {
+                bool initialized = Common.InitController(port, out controller, out errorMessage);
+                if (initialized)
+                {
+                    File.WriteAllText(lastportfilename, port);
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public static bool InitController(string port, out Controller controller, out string errorMessage)
         {
+            Common.logger.Info("Initialize Serialport: {0}", port);
             BasicApplicationLayer AppLayer = new BasicApplicationLayer(
                 new SessionLayer(),
                 new BasicFrameLayer(),
