@@ -28,29 +28,33 @@ namespace hyper
         public static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         public static bool InitControllerAuto(out Controller controller, out string errorMessage)
-        { 
-            var ports = new List<string>();
+        {
+            controller = null;
+            errorMessage = string.Empty;
+            var detectedPorts = SerialPort.GetPortNames();
+            if (detectedPorts.Length > 0)
+            {
+                Common.logger.Info("Detected serial ports: {0}", string.Join(" ", detectedPorts));
+            }
+            else 
+            { 
+                errorMessage = "No serial ports detected";
+                return false;
+            }
+            var portsToTry = detectedPorts.ToList();
             string lastportfilename = "lastport.txt";
             if (File.Exists(lastportfilename))
             {
                 string lastport = File.ReadAllText(lastportfilename);
-                ports.Add(lastport);
-                Common.logger.Info("Initialize Serialport: trying last sucessfull port {0}", lastport);
-            }
-            //for (int i = 3; i < 10; ++i)
-            foreach (string portname in SerialPort.GetPortNames())
-            {
-                Common.logger.Info("Serial port found: {0}", portname);
-                //string portname = "COM" + i;
-                if (portname != ports.FirstOrDefault())
+                if (detectedPorts.Contains(lastport))
                 {
-                    ports.Add(portname);
+                    Common.logger.Info("Initialize Serialport: trying last sucessfull port {0} first", lastport);
+                    portsToTry.Remove(lastport);
+                    portsToTry.Insert(0, lastport);
                 }
             }
 
-            controller = null;
-            errorMessage = string.Empty;
-            foreach (string port in ports)
+            foreach (string port in portsToTry)
             {
                 bool initialized = Common.InitController(port, out controller, out errorMessage);
                 if (initialized)

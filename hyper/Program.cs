@@ -7,7 +7,6 @@ using hyper.Output;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Ports;
 using System.Linq;
 using ZWave.BasicApplication.Devices;
 
@@ -97,9 +96,7 @@ namespace hyper
             if (port == "auto")
             {
                 //for easier debugging, not meant to be used in production
-                //port = SerialPort.GetPortNames().FirstOrDefault();
                 initialized = Common.InitControllerAuto(out controller, out errorMessage);
-//                initialized = Common.InitController(port, out controller, out errorMessage);
             }
             else
             {
