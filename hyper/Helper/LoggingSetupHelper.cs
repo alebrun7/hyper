@@ -41,6 +41,26 @@ namespace hyper.Helper
             LogManager.Configuration = configuration;
         }
 
+        public static void SetDebugLevel(bool enabled)
+        {
+            var configuration = LogManager.Configuration;
+            if (configuration != null)
+            {
+                foreach (var r in configuration?.LoggingRules)
+                {
+                    if (enabled)
+                    {
+                        r.EnableLoggingForLevel(LogLevel.Debug);
+                    }
+                    else
+                    {
+                        r.DisableLoggingForLevel(LogLevel.Debug);
+                    }
+                }
+                LogManager.Configuration = configuration;
+            }
+        }
+
         private static void AddTargetAndSetRules(LoggingConfiguration configuration, Target target)
         {
             configuration.AddTarget(target);

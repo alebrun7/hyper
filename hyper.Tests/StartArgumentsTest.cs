@@ -22,21 +22,11 @@ namespace hyper.Tests
         [TestMethod]
         public void PrintUsage_WritesToLog()
         {
-            MemoryTarget logTarget = SetupMemoryLogTarget();
+            MemoryTarget logTarget = LoggingSetupHelperTest.SetupMemoryLogTarget();
 
             new StartArguments(new string[0]).PrintUsage();
 
             Assert.AreNotEqual(0, logTarget.Logs.Count);
-        }
-
-        private static MemoryTarget SetupMemoryLogTarget()
-        {
-            var logTarget = new MemoryTarget("memory");
-            var configuration = new LoggingConfiguration();
-            configuration.AddTarget(logTarget);
-            configuration.AddRule(LogLevel.Info, LogLevel.Fatal, logTarget);
-            LogManager.Configuration = configuration;
-            return logTarget;
         }
 
         [TestMethod]

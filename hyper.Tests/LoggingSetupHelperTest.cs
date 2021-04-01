@@ -76,10 +76,50 @@ namespace hyper.Tests
             Assert.IsFalse(fileRules.First().Levels.Contains(LogLevel.Debug));
         }
 
+        [TestMethod]
+        public void SetDebugLevel_True_LogsDebugEntry()
+        {
+            MemoryTarget logTarget = SetupMemoryLogTarget();
+
+            Logger logger = LogManager.GetCurrentClassLogger();
+
+            Assert.AreEqual(0, logTarget.Logs.Count);
+            logger.Debug("Test debug msg without debug mode");
+            Assert.AreEqual(0, logTarget.Logs.Count);
+            LoggingSetupHelper.SetDebugLevel(true);
+            logger.Debug("Test debug msg with debug mode");
+            Assert.AreEqual(1, logTarget.Logs.Count);
+        }
+        [TestMethod]
+        public void SetDebugLevel_False_DebugEntryNotLogged()
+        {
+            MemoryTarget logTarget = SetupMemoryLogTarget();
+            Logger logger = LogManager.GetCurrentClassLogger();
+            LoggingSetupHelper.SetDebugLevel(true);
+            logger.Debug("Test debug msg with debug mode");
+            Assert.AreEqual(1, logTarget.Logs.Count);
+
+            LoggingSetupHelper.SetDebugLevel(false);
+            logger.Debug("Test debug msg without debug mode");
+            Assert.AreEqual(1, logTarget.Logs.Count);
+            logger.Info("Test info msg without debug mode");
+            Assert.AreEqual(2, logTarget.Logs.Count);
+
+        }
         [TestCleanup]
         public void TestCleanup()
         {
             LogManager.Configuration = new LoggingConfiguration(); //cleanup
+        }
+
+        internal static MemoryTarget SetupMemoryLogTarget()
+        {
+            var logTarget = new MemoryTarget("memory");
+            var configuration = new LoggingConfiguration();
+            configuration.AddTarget(logTarget);
+            configuration.AddRule(LogLevel.Info, LogLevel.Fatal, logTarget);
+            LogManager.Configuration = configuration;
+            return logTarget;
         }
 
         LoggingConfiguration GetTestConfig()

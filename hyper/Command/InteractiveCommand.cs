@@ -283,6 +283,7 @@ namespace hyper
                             var val = debugRegex.Match(debugVal).Groups[1].Value;
                             var debug = bool.Parse(val);
                             listenComand.Debug = debug;
+                            LoggingSetupHelper.SetDebugLevel(debug);
                             break;
                         }
                     case var removeVal when forceRemoveRegex.IsMatch(removeVal):
