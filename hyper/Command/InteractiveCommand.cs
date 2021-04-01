@@ -274,7 +274,7 @@ namespace hyper
                             List<Event> events = eventDao.GetByFilter(filter);
                             foreach (var evt in events)
                             {
-                                Common.logger.Debug(evt);
+                                Common.logger.Info(evt);
                             }
                             break;
                         }

@@ -87,12 +87,22 @@ namespace hyper
                 return;
             }
 
+            Controller controller = null;
+            string errorMessage = "";
+
             var port = startArgs.Port;
             bool startUdpMultiplexer = startArgs.StartUdpMultiplexer;
-            Common.logger.Info("Initialize Serialport: {0}", port);
-            var initController = Common.InitController(port, startUdpMultiplexer,
-                out Controller controller, out string errorMessage);
-            if (!initController)
+            bool initialized = false;
+            if (port == "auto")
+            {
+                //for easier debugging, not meant to be used in production
+                initialized = Common.InitControllerAuto(startUdpMultiplexer, out controller, out errorMessage);
+            }
+            else
+            {
+                initialized = Common.InitController(port, startUdpMultiplexer, out controller, out errorMessage);
+            }
+            if (!initialized)
             {
                 Common.logger.Error("Error connecting with port {0}! Error Mesage:", port);
                 Common.logger.Error(errorMessage);

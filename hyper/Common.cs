@@ -5,6 +5,7 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Ports;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -30,10 +31,46 @@ namespace hyper
         public static TransmitOptions txOptions = TransmitOptions.TransmitOptionAcknowledge | TransmitOptions.TransmitOptionAutoRoute | TransmitOptions.TransmitOptionExplore;
         public static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
+        public static bool InitControllerAuto(bool startUdpMultiplexer, out Controller controller, out string errorMessage)
+        {
+            controller = null;
+            errorMessage = string.Empty;
+            var detectedPorts = SerialPort.GetPortNames();
+            if (detectedPorts.Length > 0)
+            {
+                Common.logger.Info("Detected serial ports: {0}", string.Join(" ", detectedPorts));
+            }
+            else 
+            { 
+                errorMessage = "No serial ports detected";
+                return false;
+            }
+            var portsToTry = detectedPorts.ToList();
+            string lastportfilename = "lastport.txt";
+            if (File.Exists(lastportfilename))
+            {
+                string lastport = File.ReadAllText(lastportfilename);
+                if (detectedPorts.Contains(lastport))
+                {
+                    Common.logger.Info("Initialize Serialport: trying last sucessfull port {0} first", lastport);
+                    portsToTry.Remove(lastport);
+                    portsToTry.Insert(0, lastport);
+                }
+            }
 
-        public static bool InitController(
-            string port, bool startUdpMultiplexer,
-            out Controller controller, out string errorMessage)
+            foreach (string port in portsToTry)
+            {
+                bool initialized = Common.InitController(port, startUdpMultiplexer, out controller, out errorMessage);
+                if (initialized)
+                {
+                    File.WriteAllText(lastportfilename, port);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public static bool InitController(string port, bool startUdpMultiplexer, out Controller controller, out string errorMessage)
         {
             ITransportLayer transportLayer;
             IDataSource dataSource = new SerialPortDataSource(port, BaudRates.Rate_115200);
