@@ -168,3 +168,11 @@
     productTypeId: 1026
     groups:
         3: 1
+
+# Fibargroup FGSD002 Smoke Detector
+# https://manuals.fibaro.com/de/smoke-sensor/
+# https://www.opensmarthouse.org/zwavedatabase/878
+-   deviceName: Fibargroup FGSD002 Smoke Detector
+    manufacturerId: 271 #0x010F
+    productTypeId: 3074 #0x0C02
+    wakeup: 65535 # max value, a little more than 18 hours. 0 would disable wakeup completely - default was 6 hours
