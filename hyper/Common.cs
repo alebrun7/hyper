@@ -170,10 +170,10 @@ namespace hyper
             {
                 var rpt = (COMMAND_CLASS_MANUFACTURER_SPECIFIC.MANUFACTURER_SPECIFIC_REPORT)result.Command;
                 manufacturerId = Tools.GetInt32(rpt.manufacturerId);
-                Common.logger.Info("ManufacturerId: " + manufacturerId);
-                Common.logger.Info("ProductId: " + Tools.GetInt32(rpt.productId));
+                Common.logger.Info("ManufacturerId: {0} (0x{0:X})",manufacturerId);
+                Common.logger.Info("ProductId: {0} (0x{0:X})", Tools.GetInt32(rpt.productId));
                 productTypeId = Tools.GetInt32(rpt.productTypeId);
-                Common.logger.Info("ProductTypeId: " + productTypeId);
+                Common.logger.Info("ProductTypeId: {0} (0x{0:X})", productTypeId);
                 return true;
             }
             else
