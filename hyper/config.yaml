@@ -1,8 +1,9 @@
 # FGDW002 - Fibaro Door Window Sensor 2
 # https://www.cd-jackson.com/index.php/zwave/zwave-device-database/zwave-device-list/devicesummary/604
+# https://www.opensmarthouse.org/zwavedatabase/604
 -   deviceName: FGDW002 - Fibaro Door Window Sensor 2
-    manufacturerId: 271
-    productTypeId: 1794
+    manufacturerId: 271 # 0x010F
+    productTypeId: 1794 # 0702
     groups:
     # send alarm
         1: 1
@@ -17,27 +18,33 @@
         50_2: 0
         # Temperature reports threshold
         51_2: 0
-        
--   deviceName: FGDW002 - Fibaro Door Window Sensor 1.5
-    manufacturerId: 271
-    productTypeId: 1793
-    groups:
-    # send alarm
-        1: 1
-    config: 
-        # bitmask:
-        # 2_1 Visual LED indications - Open/close = 1; 
-        # 2_2 Visual LED indications - wake up = 0;
-        # 2_4 Visual LED indications - tampering = 0
-        # -> 2 = 1
-        2_1: 1
-        # Interval of temperature measurements
-        50_2: 0
-        # Temperature reports threshold
-        51_2: 0
+    wakeup: 64800 # 18 hours
 
+# Fibargroup FGK101 Door Opening Sensor
+# https://www.opensmarthouse.org/zwavedatabase/381
+-   deviceName: FGDW002 - Fibaro Door Window Sensor 1.5
+    manufacturerId: 271 # 0x010F
+    productTypeId: 1793 # 0x0701
+    groups:
+    # send alarm
+        1: 1
+    config: 
+        # bitmask:
+        # 2_1 Visual LED indications - Open/close = 1; 
+        # 2_2 Visual LED indications - wake up = 0;
+        # 2_4 Visual LED indications - tampering = 0
+        # -> 2 = 1
+        2_1: 1
+        # Interval of temperature measurements
+        50_2: 0
+        # Temperature reports threshold
+        51_2: 0
+    wakeup: 64800 # 18 hours
+
+# Fibargroup FGK101 Door Opening Sensor
+# https://www.opensmarthouse.org/zwavedatabase/125
 -   deviceName: FGDW002 - Fibaro Door Window Sensor 1
-    manufacturerId: 271
+    manufacturerId: 271 # 0x010F
     productTypeId: 1792 # 0x700
     groups:
     # send basic
@@ -53,6 +60,7 @@
         50_2: 0
         # Temperature reports threshold
         51_2: 0
+    wakeup: 64800 # 18 hours
 
 # ZW100 Multisensor 6 1.12
 # https://www.cd-jackson.com/index.php/zwave/zwave-device-database/zwave-device-list/devicesummary/778
