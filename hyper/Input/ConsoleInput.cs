@@ -49,8 +49,12 @@ namespace hyper.Inputs
                     }
                     if (message == null)
                     {
-                        Common.logger.Info("ConsoleInput: running as a service or in similar conditions, no input.");
-                        break;
+                        //can happen if run as a service without screen
+                        //or once if Ctrl+C is pressed to stop a command
+                        //in the first case we could break to close the thread
+                        //but in the second case we want to accept more commands so stay in the loop
+                        //it could use too much cpu so make a pause
+                        Thread.Sleep(500);
                     }
                     //if (CanRead)
                     //{
