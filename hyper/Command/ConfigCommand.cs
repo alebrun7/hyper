@@ -32,12 +32,15 @@ namespace hyper
             Common.logger.Info("node to configure: " + NodeId);
             Common.logger.Info("-----------");
 
+            string errorMsg = $"Configuration failed for node {NodeId}!";
+
             Common.logger.Info("Getting configuration for device...");
             ConfigItem config = Common.GetConfigurationForDevice(controller, NodeId, configList, ref abort);
             if (config == null)
             {
                 Common.logger.Info("could not find configuration!");
                 Common.logger.Info("Either there is no configuration or device did not reply!");
+                Common.logger.Error(errorMsg);
                 Active = false;
                 return false;
             }
@@ -46,12 +49,12 @@ namespace hyper
             Common.logger.Info("Setting values.");
             if (Common.SetConfiguration(controller, NodeId, config, ref abort))
             {
-                Common.logger.Info("Configuration successful!");
+                Common.logger.Info($"Configuration successful for node {NodeId}!");
                 Common.logger.Info("-------------------");
                 Active = false;
                 return true;
             }
-
+            Common.logger.Error(errorMsg);
             return false;
         }
 
