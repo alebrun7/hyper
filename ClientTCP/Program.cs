@@ -22,12 +22,22 @@ namespace ClientTCP
             client.ConnectAsync();
             Console.WriteLine("Done!");
 
+            while (!client.IsConnected)
+            {
+                System.Threading.Thread.Sleep(100);
+            }
+
             while (true)
             {
                 string line = Console.ReadLine();
                 if (!string.IsNullOrEmpty(line))
                 {
                     client.SendAsync(line + "\n");
+                }
+                else
+                {
+                    System.Threading.Thread.Sleep(500);
+                    break;
                 }
             }
 
