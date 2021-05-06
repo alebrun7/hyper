@@ -27,9 +27,12 @@ namespace hyper.Inputs
         public TCPInput(int port)
         {
             Name = "TCPInput";
-            server = new TCPServer(IPAddress.Any, port);
-            server.OnMessage += OnMessage;
-            server.Start();
+            if (port > 0) //for tests
+            {
+                server = new TCPServer(IPAddress.Any, port);
+                server.OnMessage += OnMessage;
+                server.Start();
+            }
         }
 
         //private void OnConnected(TcpSession client)
@@ -38,18 +41,20 @@ namespace hyper.Inputs
         //    clients.Add(client);
         //}
 
-        public void OnMessage(string message)
+        public void OnMessage(string wholeMessage)
         {
-            if (message?.Trim().Length > 0)
+            if (wholeMessage?.Trim().Length > 0)
             {
-                if (message == "stop")
-                {
-                    CancelKeyPress?.Invoke(null, null);
-                    return;
+                var messageList = wholeMessage.Trim().Split("\n");
+                foreach (string message in messageList) {
+                    if (message == "stop")
+                    {
+                        CancelKeyPress?.Invoke(null, null);
+                        return;
+                    }
+                    lock (_syncObj)
+                        messageQueue.Add(message);
                 }
-                lock (_syncObj)
-                    messageQueue.Add(message);
-                // resetEvent.Set();
             }
         }
 

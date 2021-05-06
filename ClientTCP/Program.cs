@@ -27,7 +27,7 @@ namespace ClientTCP
                 string line = Console.ReadLine();
                 if (!string.IsNullOrEmpty(line))
                 {
-                    client.SendAsync(line);
+                    client.SendAsync(line + "\n");
                 }
             }
 
