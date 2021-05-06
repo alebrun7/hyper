@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
@@ -10,10 +11,18 @@ namespace ClientTCP
 
         static void Main(string[] args)
         {
+            const string standardWaitString = "destiny";
             const int port = 5432;
             string address = "127.0.0.1";
+
             if (args.Length > 0)
                 address = args[0];
+
+            string cmd = string.Empty;
+            if (args.Length > 1)
+            {
+                cmd = String.Join(" ", args.Skip(1));
+            }
 
             var client = new TCPClient(address, port);
 
@@ -25,6 +34,12 @@ namespace ClientTCP
             while (!client.IsConnected)
             {
                 System.Threading.Thread.Sleep(100);
+            }
+
+            if (!string.IsNullOrEmpty(cmd))
+            {
+                client.WaitString = standardWaitString;
+                client.SendAsync(cmd);
             }
 
             while (true)

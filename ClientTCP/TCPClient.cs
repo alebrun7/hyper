@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -10,6 +11,8 @@ namespace ClientTCP
     class TCPClient : TcpClient
     {
         public TCPClient(string address, int port) : base(address, port) { }
+
+        public string WaitString { get;  set; }
 
         protected override void OnConnected()
         {
@@ -32,6 +35,11 @@ namespace ClientTCP
         {
             var message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
             Console.Write(message);
+            if (!string.IsNullOrEmpty(WaitString) && message.Contains(WaitString))
+            {
+                Console.Write("recognised wait string '{0}', exiting", WaitString);
+                Process.GetCurrentProcess().Kill();
+            }
         }
 
         protected override void OnError(SocketError error)
