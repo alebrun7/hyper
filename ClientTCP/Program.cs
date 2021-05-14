@@ -8,10 +8,19 @@ namespace ClientTCP
 {
     class Program
     {
+        static string GetWaitString(string command)
+        {
+            switch(command)
+            {
+                case "include":
+                    return "Starting inclusion, please wake up device...";
+                default:
+                    return "destiny";
+            }
+        }
 
         static void Main(string[] args)
         {
-            const string standardWaitString = "destiny";
             const int port = 5432;
             string address = "127.0.0.1";
 
@@ -29,7 +38,7 @@ namespace ClientTCP
             // Connect the client
             Console.WriteLine("Client connecting to {0}:{1}...", address, port);
             client.ConnectAsync();
-            Console.WriteLine("Done!");
+            Console.WriteLine("Connected!");
 
             while (!client.IsConnected)
             {
@@ -38,8 +47,17 @@ namespace ClientTCP
 
             if (!string.IsNullOrEmpty(cmd))
             {
-                client.WaitString = standardWaitString;
-                client.SendAsync(cmd);
+                client.WaitString = GetWaitString(cmd);
+                if (cmd.Equals("wait"))
+                {
+                    Console.WriteLine("Waiting for: " + client.WaitString);
+                }
+                else
+                {
+                    Console.WriteLine("Executing command: " + cmd);
+                    client.SendAsync(cmd);
+
+                }
             }
 
             while (true)
