@@ -145,7 +145,7 @@ namespace hyper
                     }
                     var report = implicitCastMethod.Invoke(null, new[] { x.Command });
                     report.GetKeyValue(out Enums.EventKey eventKey, out float eventValue);
-                    Common.logger.Info($"key: {eventKey} - value: {eventValue}");
+                    Common.logger.Info($"id: {x.SrcNodeId} - key: {eventKey} - value: {eventValue}");
 
                     if (!filterActive && Debug)
                         Common.logger.Info(Util.ObjToJson(report));

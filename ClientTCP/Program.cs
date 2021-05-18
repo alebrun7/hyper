@@ -10,7 +10,12 @@ namespace ClientTCP
     {
         static string GetWaitString(string command)
         {
-            switch(command)
+            const string waitForPrefix = "wait for ";
+            if (command.StartsWith(waitForPrefix)) {
+                //Allow to wait for a specific string during automatic testing
+                return command.Substring(waitForPrefix.Length);
+            }
+            else switch(command)
             {
                 case "include":
                     return "Starting inclusion, please wake up device...";
@@ -48,7 +53,7 @@ namespace ClientTCP
             if (!string.IsNullOrEmpty(cmd))
             {
                 client.WaitString = GetWaitString(cmd);
-                if (cmd.Equals("wait"))
+                if (cmd.StartsWith("wait"))
                 {
                     Console.WriteLine("Waiting for: " + client.WaitString);
                 }
