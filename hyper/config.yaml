@@ -90,30 +90,39 @@
 # FGWP102 Metered Wall Plug Switch
 # https://www.cd-jackson.com/index.php/zwave/zwave-device-database/zwave-device-list/devicesummary/513
 -   deviceName: FGWP102 Metered Wall Plug Switch
-    manufacturerId: 271
-    productTypeId: 1538
+    manufacturerId: 271 # (0x10F)
+    productTypeId: 1538 # (0x602)
     groups:
         1: 1
         #2: 1
         #3: 1
     config:
+        # high priority power report threshold in percent (default is 80)
         10_1: 90
+        # Standard power report threshold in percent (default is 15, 100 means disabled)
         11_1: 100
+        # Power and energy periodic reports (default 3600s, 0 is inactive)
         14_2: 0
 
 # FGWP101 Metered Wall Plug Switch
 # https://www.cd-jackson.com/index.php/zwave/zwave-device-database/zwave-device-list/devicesummary/130
+# https://www.opensmarthouse.org/zwavedatabase/130
 -   deviceName: FGWP101 Metered Wall Plug Switch
-    manufacturerId: 271
-    productTypeId: 1536
+    manufacturerId: 271 # (0x10F)
+    productTypeId: 1536 # (0x600)
     groups:
-        1: 1
+        # 1: is assigned to Plugs status - On / Off. Allows for sending control command to associated devices whenever the Plug is turned On or Off.
+        #1: 1
         #2: 1
-        #3: 1
+        # 3: reports  relay's  status  to  just  one  device,  Z-Wave network's main controller by default. It's not recommended to modify settings of this association group.
+        3: 1
     config:
-        10_1: 90
-        11_1: 100
-        14_2: 0
+        # Immediate power report
+        40_1: 90
+        # Standard power load reporting (default is 15, 100 means off)
+        42_1: 100
+        #  Time  period  between  reports  on  power  load  and  energy  consumption (default 3600s, 65535 to disable)
+        47_2: 65535
 
 # FGBS001 Universal Binary Sensor
 # https://www.cd-jackson.com/index.php/zwave/zwave-device-database/zwave-device-list/devicesummary/126
