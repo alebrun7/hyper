@@ -52,6 +52,11 @@ namespace hyper.Inputs
                         CancelKeyPress?.Invoke(null, null);
                         return;
                     }
+                    if (message == "cancel")
+                    {
+                        //handled in CancelHandler.CancelHandler()
+                        CancelKeyPress?.Invoke(this, null);
+                    }
                     lock (_syncObj)
                         messageQueue.Add(message);
                 }

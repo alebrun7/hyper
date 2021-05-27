@@ -35,9 +35,15 @@ namespace hyper
 
         public bool Active { get; private set; } = false;
 
+        private void CancelCommand()
+        {
+            //comes from TCPInput and is useful for non interactive usage
+            Common.logger.Info("current command should already be stopped, nothing to do");
+        }
+
         private void CancelHandler(object evtSender, ConsoleCancelEventArgs evtArgs)
         {
-            Common.logger.Info(Util.ObjToJson(evtSender));
+            Common.logger.Debug(Util.ObjToJson(evtSender));
 
             if (evtArgs != null)
             {
@@ -49,7 +55,17 @@ namespace hyper
                 return;
             }
 
-            if (currentCommand == null)
+            if (currentCommand != null)
+            {
+                Common.logger.Info("Stopping current command!");
+                currentCommand.Stop();
+            }
+            else if (evtSender != null && evtSender is IInput)
+            {
+                //TCPInput sets evtSender for the cancel command
+                Common.logger.Info("No current command, but cancel command recognized, nothing to do");
+            }
+            else if (evtSender == null)
             {
                 Common.logger.Info("No current command, stopping application");
                 if (evtArgs != null)
@@ -59,9 +75,6 @@ namespace hyper
                 Environment.Exit(0);
                 return;
             }
-
-            Common.logger.Info("Stopping current command!");
-            currentCommand.Stop();
         }
 
         public override bool Start()
@@ -129,6 +142,9 @@ namespace hyper
                 Common.logger.Info("Command: {0}", input);
                 switch (input.Trim().ToLower())
                 {
+                    case "cancel":
+                        CancelCommand();
+                        break;
                     case "test":
                         {
                             foreach (var n in Program.controller.IncludedNodes)
