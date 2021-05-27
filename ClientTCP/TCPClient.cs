@@ -10,9 +10,12 @@ namespace ClientTCP
 {
     class TCPClient : TcpClient
     {
-        public TCPClient(string address, int port) : base(address, port) { }
+        public TCPClient(string address, int port) : base(address, port)
+        {
+            WaitStrings = new string[] { };
+        }
 
-        public string WaitString { get;  set; }
+        public string[] WaitStrings { get;  set; }
 
         protected override void OnConnected()
         {
@@ -35,10 +38,13 @@ namespace ClientTCP
         {
             var message = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
             Console.Write(message);
-            if (!string.IsNullOrEmpty(WaitString) && message.Contains(WaitString))
+            foreach (string waitString in WaitStrings)
             {
-                Console.Write("recognised wait string '{0}', exiting", WaitString);
-                Process.GetCurrentProcess().Kill();
+                if (message.Contains(waitString))
+                {
+                    Console.Write($"recognised wait string '{waitString}', exiting");
+                    Process.GetCurrentProcess().Kill();
+                }
             }
         }
 

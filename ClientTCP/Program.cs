@@ -8,19 +8,28 @@ namespace ClientTCP
 {
     class Program
     {
-        static string GetWaitString(string command)
+        static string[] GetWaitStrings(string command)
         {
             const string waitForPrefix = "wait for ";
             if (command.StartsWith(waitForPrefix)) {
                 //Allow to wait for a specific string during automatic testing
-                return command.Substring(waitForPrefix.Length);
+                return new string[] { command.Substring(waitForPrefix.Length) };
             }
-            else switch(command)
+            else if (command.StartsWith("replace"))
+            {
+                // replace can fehlschlagen, daher zwei verschiedene string zu prüfen
+                return new string[] {
+                    "Set new device to inclusion mode",
+                    "If node is reachable, we cannot replace it"
+                };
+            }
+            else switch (command)
             {
                 case "include":
-                    return "Starting inclusion, please wake up device...";
+                    return new string[] { "Starting inclusion, please wake up device..." };
+
                 default:
-                    return "destiny";
+                    return new string[] { "destiny" };
             }
         }
 
@@ -52,10 +61,10 @@ namespace ClientTCP
 
             if (!string.IsNullOrEmpty(cmd))
             {
-                client.WaitString = GetWaitString(cmd);
+                client.WaitStrings = GetWaitStrings(cmd);
                 if (cmd.StartsWith("wait"))
                 {
-                    Console.WriteLine("Waiting for: " + client.WaitString);
+                    Console.WriteLine("Waiting for: " + client.WaitStrings[0]);
                 }
                 else
                 {
