@@ -52,12 +52,12 @@ namespace ClientTCP
             // Connect the client
             Console.WriteLine("Client connecting to {0}:{1}...", address, port);
             client.ConnectAsync();
-            Console.WriteLine("Connected!");
 
             while (!client.IsConnected)
             {
                 System.Threading.Thread.Sleep(100);
             }
+            Console.WriteLine("Connected!");
 
             if (!string.IsNullOrEmpty(cmd))
             {
