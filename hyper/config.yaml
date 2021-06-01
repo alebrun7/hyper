@@ -74,6 +74,8 @@
         #255_4: 1431655765
         # Motion Sensor reset timeout
         3_2: 10
+        # Motion sensor sensitivity, useful for some older devices
+        #4_1: 5
         # Motion Sensor Triggered Command
         5_1: 2
         # sum of:
