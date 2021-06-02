@@ -62,7 +62,6 @@ namespace hyper
             ICommand currentCommand = null;
 
             Common.logger.Info("==== ZWave Hyper Hyper 5000 ====");
-            Common.logger.Warn("Test version with built in UDP Multiplexer");
             Common.logger.Info("-----------------------------------");
             Common.logger.Info("Loading device configuration database...");
             if (!File.Exists("config.yaml"))

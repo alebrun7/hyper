@@ -44,7 +44,6 @@ namespace hyper.Helper
         {
             Common.logger.Info("usage:");
             Common.logger.Info("./hyper [-udpmultiplexer] serialPort [command]");
-            Common.logger.Info("or ./hyper udp:remote_ip:port [command]");
             Common.logger.Info("valid commands:");
             //just refactored from Program.cs, but not up to date:
             Common.logger.Info("r/replace, c/config, i/include, e/exclude, l/listen, p/ping");

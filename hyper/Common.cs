@@ -72,25 +72,8 @@ namespace hyper
 
         public static bool InitController(string port, bool startUdpMultiplexer, out Controller controller, out string errorMessage)
         {
-            ITransportLayer transportLayer;
             IDataSource dataSource = new SerialPortDataSource(port, BaudRates.Rate_115200);
-            if (port.StartsWith("udp:"))
-            {
-                //notizen: daten werden zu host:4123 geschickt (siehe UdpClientTransportClient.cs(112) )
-                //was wird aus port? vermutlich der lokale port zum lauschen.
-                //now, code is changed and the destination port is configurable
-                //4123 is used for incoming local port
-
-                transportLayer = new UdpClientTransportLayer();
-                var address = port.Split(":");
-                var host = address[1];
-                int udpPort = int.Parse(address[2]);
-                dataSource = new SocketDataSource(host, udpPort);
-            }
-            else {
-                transportLayer = new SerialPortTransportLayer();
-            }
-
+            SerialPortTransportLayer transportLayer = new SerialPortTransportLayer();
 
             BasicApplicationLayer AppLayer = new BasicApplicationLayer(
                 new SessionLayer(),
@@ -165,12 +148,8 @@ namespace hyper
 
             if (startUdpMultiplexer)
             {
-                var serialPortTransportLayer = transportLayer as SerialPortTransportLayer;
-                if (serialPortTransportLayer != null)
-                {
-                    var multiplexer = new UDPMultiplexer(serialPortTransportLayer.TransportClient);
-                    multiplexer.Start();
-                }
+                var multiplexer = new UDPMultiplexer(transportLayer.TransportClient);
+                multiplexer.Start();
             }
 
             return true;
