@@ -203,10 +203,10 @@ namespace hyper
             {
                 var rpt = (COMMAND_CLASS_MANUFACTURER_SPECIFIC.MANUFACTURER_SPECIFIC_REPORT)result.Command;
                 manufacturerId = Tools.GetInt32(rpt.manufacturerId);
-                Common.logger.Info("ManufacturerId: " + manufacturerId);
-                Common.logger.Info("ProductId: " + Tools.GetInt32(rpt.productId));
+                Common.logger.Info("ManufacturerId: {0} (0x{0:X})",manufacturerId);
+                Common.logger.Info("ProductId: {0} (0x{0:X})", Tools.GetInt32(rpt.productId));
                 productTypeId = Tools.GetInt32(rpt.productTypeId);
-                Common.logger.Info("ProductTypeId: " + productTypeId);
+                Common.logger.Info("ProductTypeId: {0} (0x{0:X})", productTypeId);
                 return true;
             }
             else
@@ -368,15 +368,50 @@ namespace hyper
             }
             if (config.wakeup != 0)
             {
+                retryCount = 3;
                 GetWakeUp(controller, nodeId);
-                var wakeupSet = SetWakeUp(controller, nodeId, config.wakeup);
-                if (wakeupSet)
+                bool intervalValidated = false;
+                do
                 {
-                    GetWakeUp(controller, nodeId);
+                    var wakeupSet = SetWakeUp(controller, nodeId, config.wakeup);
+                    if (wakeupSet)
+                    {
+                        intervalValidated = ValidateWakeUp(controller, nodeId, config);
+                        if (!intervalValidated)
+                        {
+                            Common.logger.Info("Not successful! Trying again, please wake up device.");
+                            Thread.Sleep(200);
+                            retryCount--;
+                        }
+                    }
+                } while (!intervalValidated && !abort && retryCount > 0);
+
+                if (retryCount <= 0 || abort)
+                {
+                    Common.logger.Info("Too many retrys or aborted!");
+                    return false;
                 }
             }
 
             return true;
+        }
+
+        private static bool ValidateWakeUp(Controller controller, byte nodeId, ConfigItem config)
+        {
+            int actualInterval = GetWakeUp(controller, nodeId);
+            if (config.wakeup == actualInterval)
+            {
+                Common.logger.Info("parameter ist set correctly!");
+                return true;
+            }
+            else
+            {
+                if (actualInterval != -1)
+                {
+                    Common.logger.Warn("wake up interval has value {0} instead of {1}", actualInterval, config.wakeup);
+                }
+                return false;
+            }
         }
 
         public static bool SetWakeUp(Controller controller, byte nodeId, int configValue)
@@ -392,21 +427,23 @@ namespace hyper
             return setWakeup.TransmitStatus == TransmitStatuses.CompleteOk;
         }
 
-        public static bool GetWakeUp(Controller controller, byte nodeId)
+        public static int GetWakeUp(Controller controller, byte nodeId)
         {
             var cmd = new COMMAND_CLASS_WAKE_UP_V2.WAKE_UP_INTERVAL_GET();
             var result = controller.RequestData(nodeId, cmd, Common.txOptions, new COMMAND_CLASS_WAKE_UP_V2.WAKE_UP_INTERVAL_REPORT(), 20000);
+            int seconds = -1; // -1 means error here. value cannot be -1 because it is only 3 bytes
             if (result)
             {
                 var rpt = (COMMAND_CLASS_WAKE_UP_V2.WAKE_UP_INTERVAL_REPORT)result.Command;
+                seconds = Tools.GetInt32(rpt.seconds);
                 Common.logger.Info("wake up interval: {0}, nodeid (to send notifications): {1}",
-                    Tools.GetInt32(rpt.seconds), rpt.nodeid);
+                    seconds, rpt.nodeid);
             }
             else
             {
                 Common.logger.Warn($"Could not get wake up interval!!");
             }
-            return result;
+            return seconds;
         }
 
         public static bool GetWakeUpCapabilities(Controller controller, byte nodeId)

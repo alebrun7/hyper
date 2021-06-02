@@ -54,8 +54,13 @@ def remove_inhausUDP_cronjob():
     if os.path.exists("new.cron"):
         os.unlink("new.cron")
 
-
-hyper_version_path = "/var/inhaus/hyper/version.txt"
+def check_current_directory():
+    if os.getcwd() == hyper_path:
+        print("Current directory is the production directory, use a working directory for update!")
+        sys.exit(1)
+        
+hyper_path = "/var/inhaus/hyper"
+hyper_version_path = hyper_path + "/version.txt"
 hyper_version_remote_url = 'https://api.github.com/repos/alebrun7/hyper/releases/latest'
 hyper_latest_url = 'https://github.com/alebrun7/hyper/releases/latest/download/publishlinux-arm.tar.xz'
 default_com = "/dev/ttyUSB_ZStickGen5"
@@ -63,7 +68,7 @@ default_com = "/dev/ttyUSB_ZStickGen5"
 if len(sys.argv) > 1:
     default_com = sys.argv[1]
 
-remove_temp()
+check_current_directory()
 
 #get remote version
 res = urllib.request.urlopen(hyper_version_remote_url)
@@ -84,6 +89,8 @@ sure = input()
 if sure != "y":
     print("ok bye")
     sys.exit(0)
+
+remove_temp()
 
 #download latest release
 print("downloading latest version")
@@ -130,6 +137,8 @@ if os.path.exists('/var/inhaus/hyper/logs'):
     shutil.copytree('/var/inhaus/hyper/logs', './logs')
 if os.path.exists('/var/inhaus/hyper/events.db'):
     shutil.copyfile('/var/inhaus/hyper/events.db', './events.db')
+if os.path.exists('/var/inhaus/hyper/config.yaml'):
+    shutil.copyfile('/var/inhaus/hyper/config.yaml', './config_bak.yaml')
 
 print("done")
 
