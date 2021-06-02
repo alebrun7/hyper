@@ -30,6 +30,7 @@ namespace hyper
         private bool simulationMode;
         private static readonly string oneTo255Regex = @"\b(?:[1-9]|[1-8][0-9]|9[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b";
         private static readonly string zeroTo255Regex = @"\b(?:[0-9]|[1-8][0-9]|9[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b";
+        private int numRetriesForBasic;
 
         public static string OneTo255Regex { get { return oneTo255Regex; } }
 
@@ -96,8 +97,9 @@ namespace hyper
             var wakeUpRegex = new Regex(@$"^wakeup\s*({oneTo255Regex})\s*([0-9]+)?");
             var wakeUpCapRegex = new Regex(@$"^wakeupcap\s*({oneTo255Regex})");
             var replaceRegex = new Regex(@$"^replace\s*({oneTo255Regex})");
-            var basicRegex = new Regex(@$"^(basic|binary)\s*({oneTo255Regex})\s*(false|true)");
+            var basicRegex = new Regex(@$"^(basic|binary)\s*({oneTo255Regex})\s*(false|true)\s*(!)?(\d)?");
             var basicGetRegex = new Regex(@$"^(basic|binary)\s*({oneTo255Regex})");
+            var basicRetryRegex = new Regex(@$"^basicretry\s*(\d)?");
             var listenRegex = new Regex(@$"^listen\s*(stop|start|filter\s*({oneTo255Regex}))");
             //var testRegex = new Regex(@"^firmware\s*" + oneTo255Regex);
             var forceRemoveRegex = new Regex(@$"^remove\s*({oneTo255Regex})");
@@ -361,21 +363,50 @@ namespace hyper
                             }
                             blockExit = true;
                             var match = basicRegex.Match(basicSetVal);
+                            var action = match.Groups[1].Value;
                             var val = match.Groups[2].Value;
                             var nodeId = byte.Parse(val);
                             val = match.Groups[3].Value;
                             var value = bool.Parse(val);
+                            var retry = match.Groups[4].Value == "!";
+                            var retriesVal = match.Groups[5].Value;
+                            int num_retries = 0;
+                            num_retries = numRetriesForBasic;
+                            if (retry)
+                            {
+                                if (!string.IsNullOrEmpty(retriesVal))
+                                {
+                                    int.TryParse(retriesVal, out num_retries);
+                                }
+                            }
+
 
                             var success = false;
-                            if (match.Groups[1].Value == "basic")
+                            if (action == "basic")
                             {
                                 success = Common.SetBasic(Program.controller, nodeId, value);
                             }
-                            else if (match.Groups[1].Value == "binary")
+                            else if (action == "binary")
                             {
                                 success = Common.SetBinary(Program.controller, nodeId, value);
                             }
-                            Common.logger.Info("{0}successful!", success ? "" : "not ");
+                            if (success)
+                            {
+                                Common.logger.Info("node {0}: {1} successful!", nodeId, action);
+                            }
+                            else if (num_retries > 0)
+                            {
+                                Common.logger.Warn("node {0}: {1} failed!", nodeId, action);
+                            }
+                            else
+                            {
+                                Common.logger.Error("node {0}: {1} failed!", nodeId, action);
+                            }
+                            if (!success && (num_retries>0))
+                            {
+                                string newCmd = action + " " + nodeId + " " + val + " !" + --num_retries;
+                                InjectCommandWithDelay(newCmd);
+                            }
                             blockExit = false;
                             break;
                         }
@@ -402,6 +433,21 @@ namespace hyper
                                 Common.logger.Info("value is: {0}", ret);
                             }
                             blockExit = false;
+                            break;
+                        }
+                    case var basicRetryVal when basicRetryRegex.IsMatch(basicRetryVal):
+                        {
+                            var val = basicRetryRegex.Match(basicRetryVal).Groups[1].Value;
+                            if (string.IsNullOrEmpty(val))
+                            {
+                                //get:
+                                Common.logger.Info("basicretry is: {0}", numRetriesForBasic);
+                            }
+                            else
+                            {
+                                numRetriesForBasic = int.Parse(val);
+                                Common.logger.Info("basicretry set to: {0}", numRetriesForBasic);
+                            }
                             break;
                         }
                     case var configVal when configRegex.IsMatch(configVal):
@@ -471,6 +517,16 @@ namespace hyper
             listenComand.Stop();
             Common.logger.Info("goodby master...");
             return true;
+        }
+
+        private void InjectCommandWithDelay(string newCmd)
+        {
+            // waits 10 seconds (asynchronoulsy), then queues the new command.
+            // does not block the command thread during the delay
+            int tenSeconds = 10; //delay is in millis
+            Common.logger.Info($"injecting retry command with {tenSeconds} seconds delay");
+            Task task = Task.Delay(tenSeconds * 1000)
+                .ContinueWith(t => inputManager.InjectCommand(newCmd));
         }
 
         private static void WakeUp(Regex wakeUpRegex, string cmd)
