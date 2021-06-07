@@ -15,7 +15,8 @@ USER=root
 GROUP=root
 PIDFILE=/var/run/hyper.pid
 CWD=/var/inhaus/hyper
-CMD="/var/inhaus/hyper/hyper udp:127.0.0.1:3001"
+CMD="/var/inhaus/hyper/hyper /dev/ttyUSB_ZStickGen5"
+#CMD="/var/inhaus/hyper/hyper -- -udpmultiplexer /dev/ttyAMA0"
 
 case "$1" in
     start)
