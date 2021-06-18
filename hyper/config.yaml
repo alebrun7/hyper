@@ -73,7 +73,7 @@
         # factory reset
         #255_4: 1431655765
         # Motion Sensor reset timeout
-        3_2: 10
+        3_2: 25
         # Motion sensor sensitivity, useful for some older devices
         #4_1: 5
         # Motion Sensor Triggered Command
