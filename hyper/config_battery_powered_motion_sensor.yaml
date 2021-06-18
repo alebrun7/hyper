@@ -194,3 +194,9 @@
     manufacturerId: 271 #0x010F
     productTypeId: 3074 #0x0C02
     wakeup: 65535 # max value, a little more than 18 hours. 0 would disable wakeup completely - default was 6 hours
+
+# AEON Labs ZW117 Range Extender 6
+# https://www.opensmarthouse.org/zwavedatabase/527
+-   deviceName: AEON Labs ZW117 Range Extender 6
+    manufacturerId: 134 #(0x86)
+    productTypeId: 4 # (0x4)
