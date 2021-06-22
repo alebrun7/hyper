@@ -13,6 +13,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Utils;
+using YamlDotNet.Core;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using ZWave.BasicApplication;
@@ -158,11 +159,11 @@ namespace hyper
         public static ConfigItem GetConfigurationForDevice(Controller controller, byte nodeId, List<ConfigItem> configList, ref bool abort)
         {
             var retryCount = 3;
-            var gotDeviceIds = GetManufactor(controller, nodeId, out int manufacturerId, out int productTypeId);
+            var gotDeviceIds = GetManufactor(controller, nodeId, out int manufacturerId, out int productTypeId, out int productId);
             while (!gotDeviceIds && retryCount >= 0 && !abort)
             {
                 Common.logger.Info("could not get device data! Trying again, wake up device!");
-                gotDeviceIds = GetManufactor(controller, nodeId, out manufacturerId, out productTypeId);
+                gotDeviceIds = GetManufactor(controller, nodeId, out manufacturerId, out productTypeId, out productId);
                 retryCount--;
             }
             if (!gotDeviceIds)
@@ -170,11 +171,24 @@ namespace hyper
                 Common.logger.Info("Too many retrys, aborting!");
                 return null;
             }
-            var config = configList.Find(item => item.manufacturerId == manufacturerId && item.productTypeId == productTypeId);
+
+            var config = GetConfigurationForDevice(
+                configList, manufacturerId, productTypeId, productId);
             return config;
         }
 
-        public static bool GetManufactor(Controller controller, byte nodeId, out int manufacturerId, out int productTypeId)
+        public static ConfigItem GetConfigurationForDevice(List<ConfigItem> configList,
+            int manufacturerId, int productTypeId, int productId)
+        {
+            var config = configList.Find(item =>
+                item.manufacturerId == manufacturerId
+                && item.productTypeId == productTypeId
+                && (item.productId == productId || item.productId == 0)
+            );
+            return config;
+        }
+
+        public static bool GetManufactor(Controller controller, byte nodeId, out int manufacturerId, out int productTypeId, out int productId)
         {
             var cmd = new COMMAND_CLASS_MANUFACTURER_SPECIFIC.MANUFACTURER_SPECIFIC_GET();
             var result = controller.RequestData(nodeId, cmd, Common.txOptions, new COMMAND_CLASS_MANUFACTURER_SPECIFIC.MANUFACTURER_SPECIFIC_REPORT(), 5000);
@@ -183,7 +197,8 @@ namespace hyper
                 var rpt = (COMMAND_CLASS_MANUFACTURER_SPECIFIC.MANUFACTURER_SPECIFIC_REPORT)result.Command;
                 manufacturerId = Tools.GetInt32(rpt.manufacturerId);
                 Common.logger.Info("ManufacturerId: {0} (0x{0:X})",manufacturerId);
-                Common.logger.Info("ProductId: {0} (0x{0:X})", Tools.GetInt32(rpt.productId));
+                productId = Tools.GetInt32(rpt.productId);
+                Common.logger.Info("ProductId: {0} (0x{0:X})", productId);
                 productTypeId = Tools.GetInt32(rpt.productTypeId);
                 Common.logger.Info("ProductTypeId: {0} (0x{0:X})", productTypeId);
                 return true;
@@ -192,6 +207,7 @@ namespace hyper
             {
                 manufacturerId = 0;
                 productTypeId = 0;
+                productId = 0;
                 return false;
             }
         }
@@ -835,8 +851,9 @@ namespace hyper
             {
                 configList = deserializer.Deserialize<List<ConfigItem>>(yamlText);
             }
-            catch
+            catch(YamlException e)
             {
+                logger.Error(e.Message);
             }
 
             return configList;

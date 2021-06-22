@@ -67,6 +67,7 @@
 -   deviceName: ZW100 Multisensor 6
     manufacturerId: 134 # 0x0086
     productTypeId: 2
+    productId: 100
     groups:
         1: 1
     config: 
@@ -152,9 +153,11 @@
 
 # ZW139 Nano Switch Gen5 (without meter)
 # https://www.cd-jackson.com/index.php/zwave/zwave-device-database/zwave-device-list/devicesummary/648
+# https://www.opensmarthouse.org/zwavedatabase/648
 -   deviceName: ZW139 Nano Switch Gen5 (without meter)
     manufacturerId: 134
     productTypeId: 3
+    productId: 139 #(0x008B)
     groups:
         1: 1
         3: 1
@@ -162,6 +165,46 @@
         80_1: 2
         120_1: 0
         121_1: 0
+
+# AEON Labs ZW116 Aeotec Nano Switch
+# https://www.opensmarthouse.org/zwavedatabase/591
+-   deviceName: AEON Labs ZW116 Aeotec Nano Switch
+    manufacturerId: 134
+    productTypeId: 3
+    productId: 116 #(0x74)
+    groups:
+        1: 1
+        3: 1
+    config:
+        80_1: 2
+        120_1: 0
+        121_1: 0
+
+# AEON Labs ZW096 Smart Switch 6
+# https://www.opensmarthouse.org/zwavedatabase/63
+-   deviceName: AEON Labs ZW096 Smart Switch 6
+    manufacturerId: 134 # 0x0086
+    productTypeId: 3 # 0x0003
+    productId: 96 # 0x0060
+    groups:
+        1: 1
+    config:
+        # Configure the output load status after re-power on (0=last status, 1=always on, 2=always off)
+        20_1: 1
+        # Configure the state of LED. 0= The LED will follow the status (on/off) of its load (Energy mode). 1= When the state of Switch’s load changed, The LED will follow the status (on/off) of its load, but the red LED will turn off after 5 seconds if there is no any switch action (momentary indicate mode). 2= Night light mode.
+        81_1: 1
+        # Enables/disables parameter 91 and 92 below (1=enabled, 0=disabled).
+        90_1: 1
+        # The value here represents minimum change in wattage (in terms of wattage) for a REPORT to be sent (Valid values 0-60000).
+        91_2: 15
+        # The value here represents minimum change in wattage percent (in terms of percentage) for a REPORT to be sent (Valid values 0-100).
+        92_1: 90
+        # Which reports need to send in Report group 1
+        101_4: 0
+        # Which reports need to send in Report group 2
+        102_4: 0
+        # Which reports need to send in Report group 3
+        103_4: 0
 
 # TPS412 Touch Panel Switch 2 Channel
 # https://www.cd-jackson.com/index.php/zwave/zwave-device-database/zwave-device-list/devicesummary/429
@@ -200,3 +243,4 @@
 -   deviceName: AEON Labs ZW117 Range Extender 6
     manufacturerId: 134 #(0x86)
     productTypeId: 4 # (0x4)
+    productId: 117 # (0x0075)
