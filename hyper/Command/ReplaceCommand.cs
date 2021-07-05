@@ -2,6 +2,7 @@
 using hyper.commands;
 using hyper.config;
 using System.Collections.Generic;
+using System.Threading;
 using ZWave.BasicApplication.Devices;
 
 namespace hyper
@@ -65,6 +66,7 @@ namespace hyper
             while (!nodeReplaced && !abort)
             {
                 Common.logger.Info("Could not replace device! Trying again.");
+                Thread.Sleep(200); //same as IncludeCommand. for davert_2 this loop went crazy for 2 devices...
                 nodeReplaced = Common.ReplaceNode(controller, nodeId);
             }
 
