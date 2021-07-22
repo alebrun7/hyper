@@ -54,37 +54,38 @@ namespace hyper.Helper.Extension
                     }
                 case COMMAND_CLASS_NOTIFICATION_V8.NOTIFICATION_REPORT notificationReport:
                     {
-                        var type = notificationReport.notificationType;
-                        var mevent = notificationReport.mevent;
+                        var type = (NotificationType)notificationReport.notificationType;
                         // 0x07 Home Security
-                        if (type == 0x07)
+                        if (type == NotificationType.HomeSecurity) //0x07)
                         {
+                            var mevent = (HomeSecurityEvent)notificationReport.mevent;
                             eventType = mevent switch
                             {
-                                0x00 => Enums.EventKey.MOTION,
-                                0x03 => Enums.EventKey.TAMPER,
-                                0x04 => Enums.EventKey.TAMPER,
-                                0x09 => Enums.EventKey.TAMPER,
-                                0x07 => Enums.EventKey.MOTION,
-                                0x08 => Enums.EventKey.MOTION,
-                                0x0a => Enums.EventKey.IMPACT,
+                                HomeSecurityEvent.StateIdle => Enums.EventKey.MOTION, // 0x00
+                                HomeSecurityEvent.TamperingProductCoverRemoved => Enums.EventKey.TAMPER, // 0x03
+                                HomeSecurityEvent.TamperingInvalidCode => Enums.EventKey.TAMPER, // 0x04
+                                HomeSecurityEvent.TamperingProductMoved => Enums.EventKey.TAMPER, //  0x09
+                                HomeSecurityEvent.MotionDetectionLocationProvided => Enums.EventKey.MOTION, // 0x07
+                                HomeSecurityEvent.MotionDetection => Enums.EventKey.MOTION, // 0x08
+                                HomeSecurityEvent.ImpactDetected => Enums.EventKey.IMPACT, // 0x0a
                                 _ => Enums.EventKey.UNKNOWN,
                             };
-                            floatVal = mevent == 0 ? 0.0f : 1.0f;
+                            floatVal = mevent == HomeSecurityEvent.StateIdle ? 0.0f : 1.0f;
 
                             return true;
                         }
                         // 0x06 Access Control
-                        else if (type == 0x06)
+                        else if (type == NotificationType.AccessControl) // 0x06)
                         {
+                            var mevent = (AccessControlEvent)notificationReport.mevent;
                             eventType = mevent switch
                             {
-                                0x16 => Enums.EventKey.STATE_CLOSED,
-                                0x17 => Enums.EventKey.STATE_CLOSED,
+                                AccessControlEvent.WindowDoorIsOpen => Enums.EventKey.STATE_CLOSED, // 0x16
+                                AccessControlEvent.WindowDoorIsClosed => Enums.EventKey.STATE_CLOSED, // 0x17
                                 _ => Enums.EventKey.UNKNOWN,
                             };
 
-                            floatVal = mevent == 0x17 ? 1.0f : 0.0f;
+                            floatVal = mevent == AccessControlEvent.WindowDoorIsClosed ? 1.0f : 0.0f;
                             return true;
                         }
                         else
