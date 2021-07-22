@@ -26,7 +26,10 @@ namespace hyper
 
         public readonly object lockObject = new object();
         private ActionToken token;
+#pragma warning disable IDE0052 // Ungelesene private Member entfernen
+        //the whole class is currently under construction...
         private bool abort = false;
+#pragma warning restore IDE0052 // Ungelesene private Member entfernen
 
         private HashSet<byte> nodesToCheck = new HashSet<byte>(255);
 
