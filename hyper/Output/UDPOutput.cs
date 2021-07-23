@@ -1,5 +1,6 @@
 ﻿using hyper.Helper;
 using hyper.Helper.Extension;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +16,7 @@ namespace hyper.Output
         private Socket socket;
         private IPEndPoint ep;
         private Dictionary<byte, (DateTime, (Enums.EventKey, float))> eventMap = new Dictionary<byte, (DateTime, (Enums.EventKey, float))>();
+        public static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         public UDPOutput(string ipAdress, int port)
         {
@@ -149,6 +151,13 @@ namespace hyper.Output
                     }
                 }
             }
+            var datagram = ByteArrayToString(buffer);
+            logger.Debug("UDPOutput: send " + datagram);
+            Send(buffer);
+        }
+
+        private void Send(byte[] buffer)
+        {
             socket.SendTo(buffer, ep);
         }
 

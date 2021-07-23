@@ -1,6 +1,7 @@
 ﻿using hyper.config;
 using hyper.Helper;
 using hyper.Input;
+using hyper.Output;
 using NLog;
 using System;
 using System.Collections.Generic;
@@ -458,6 +459,42 @@ namespace hyper
                 Common.logger.Warn("Could Not get wake up capabilities!!");
             }
             return result;
+        }
+
+        internal static void SimulateSensorEvent(Controller controller, byte nodeId, string type, bool value)
+        {
+            Object report = null;
+            //command is always lower case
+            switch(type)
+            {
+                case "mk":
+                    report = new COMMAND_CLASS_NOTIFICATION_V8.NOTIFICATION_REPORT()
+                    {
+                        notificationType = (byte)NotificationType.AccessControl,
+                        mevent = value ? (byte)AccessControlEvent.WindowDoorIsOpen : (byte)AccessControlEvent.WindowDoorIsClosed
+                    };
+                    break;
+                case "bin":
+                    report = new COMMAND_CLASS_BASIC_V2.BASIC_SET()
+                    {
+                        value = value ? (byte)255 : (byte)0
+
+                    };
+                    break;
+                case "bw":
+                    report = new COMMAND_CLASS_SENSOR_BINARY_V2.SENSOR_BINARY_REPORT()
+                    {
+                        sensorValue = value ? (byte)255 : (byte)0
+                    };
+                    break;
+                default:
+                    logger.Error($"simulate: type {type} not recognized!");
+                    break;
+            }
+            if (report != null)
+            {
+                OutputManager.HandleCommand(report, nodeId, 1);
+            }
         }
 
         public static bool SetParameter(Controller controller, byte nodeId, string configParameterLong, int configValue)

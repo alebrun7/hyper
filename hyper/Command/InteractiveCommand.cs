@@ -100,6 +100,7 @@ namespace hyper
             var lastEventsRegex = new Regex(@$"^show\s*({zeroTo255Regex})\s*({zeroTo255Regex})?\s*([a-zA-Z_]+)?");
             var queueRegex = new Regex(@$"^queue\s*({oneTo255Regex}+(?:\s*,\s*{oneTo255Regex}+)*)\s*(config)");
             var multiRegex = new Regex(@$"^multi\s*({oneTo255Regex})\s*({zeroTo255Regex})\s*(false|true)");
+            var simulateRegex = new Regex(@$"^simulate\s+({oneTo255Regex})\s+(bin|bw|mk)\s+(false|true)"); //simulate 3 mk true => tür auf
             Active = true;
             bool oneShot = args.Length > 0;
 
@@ -409,7 +410,15 @@ namespace hyper
                             currentCommand = new ReplaceCommand(Program.controller, nodeId, Program.configList);
                             break;
                         }
-
+                    case var simulateVal when simulateRegex.IsMatch(simulateVal):
+                        {
+                            var match = simulateRegex.Match(simulateVal);
+                            var nodeId = byte.Parse(match.Groups[1].Value);
+                            var type = match.Groups[2].Value; //bin,bw,mk
+                            var value = bool.Parse(match.Groups[3].Value);
+                            Common.SimulateSensorEvent(Program.controller, nodeId, type, value);
+                            break;
+                        }
                     default:
                         Common.logger.Warn("unknown command");
                         break;
