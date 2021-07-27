@@ -5,6 +5,7 @@ using hyper.Database.DAO;
 using hyper.Helper;
 using hyper.Inputs;
 using hyper.Models;
+using hyper.Output;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -26,6 +27,10 @@ namespace hyper
         private string args;
         private InputManager inputManager;
         private EventDAO eventDao = new EventDAO();
+        private static readonly string oneTo255Regex = @"\b(?:[1-9]|[1-8][0-9]|9[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b";
+        private static readonly string zeroTo255Regex = @"\b(?:[0-9]|[1-8][0-9]|9[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b";
+
+        public static string OneTo255Regex { get { return oneTo255Regex; } }
 
         public InteractiveCommand(string args, InputManager inputManager)
         {
@@ -83,8 +88,6 @@ namespace hyper
             inputManager.CancelKeyPress += new ConsoleCancelEventHandler(CancelHandler);
             // InputManager.AddCancelEventHandler(CancelHandler);
 
-            var oneTo255Regex = @"\b(?:[1-9]|[1-8][0-9]|9[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b";
-            var zeroTo255Regex = @"\b(?:[0-9]|[1-8][0-9]|9[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b";
             var batteryRegex = new Regex(@$"^battery\s*({oneTo255Regex})");
             var pingRegex = new Regex(@$"^ping\s*({oneTo255Regex})");
             var configRegex = new Regex(@$"^config\s*({oneTo255Regex})\s*(!)?");
@@ -100,7 +103,8 @@ namespace hyper
             var lastEventsRegex = new Regex(@$"^show\s*({zeroTo255Regex})\s*({zeroTo255Regex})?\s*([a-zA-Z_]+)?");
             var queueRegex = new Regex(@$"^queue\s*({oneTo255Regex}+(?:\s*,\s*{oneTo255Regex}+)*)\s*(config)");
             var multiRegex = new Regex(@$"^multi\s*({oneTo255Regex})\s*({zeroTo255Regex})\s*(false|true)");
-            var simulateRegex = new Regex(@$"^simulate\s+({oneTo255Regex})\s+(bin|bw|mk)\s+(false|true)"); //simulate 3 mk true => tür auf
+            var simulateRegex = SimulateHelper.GetSimulateRegex(oneTo255Regex);
+
             Active = true;
             bool oneShot = args.Length > 0;
 
@@ -412,11 +416,13 @@ namespace hyper
                         }
                     case var simulateVal when simulateRegex.IsMatch(simulateVal):
                         {
-                            var match = simulateRegex.Match(simulateVal);
-                            var nodeId = byte.Parse(match.Groups[1].Value);
-                            var type = match.Groups[2].Value; //bin,bw,mk
-                            var value = bool.Parse(match.Groups[3].Value);
-                            Common.SimulateSensorEvent(Program.controller, nodeId, type, value);
+                            var helper = new SimulateHelper(simulateRegex, simulateVal);
+                            helper.CreateCommand();
+
+                            if (helper.Command != null)
+                            {
+                                OutputManager.HandleCommand(helper.Command, helper.NodeId, 1);
+                            }
                             break;
                         }
                     default:
