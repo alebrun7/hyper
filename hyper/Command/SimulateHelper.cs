@@ -1,4 +1,5 @@
 ﻿using hyper.Helper;
+using hyper.Helper.Extension;
 using System.Text.RegularExpressions;
 using ZWave.CommandClasses;
 
@@ -55,6 +56,11 @@ namespace hyper.Command
                 default:
                     Common.logger.Error($"simulate: type {type} not recognized!");
                     break;
+            }
+            if (Command != null)
+            {
+                Command.GetKeyValue(out Enums.EventKey eventKey, out float eventValue);
+                Common.logger.Info($"simulate event - id: {NodeId} - key: {eventKey} - value: {eventValue}");
             }
         }
     }
