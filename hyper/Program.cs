@@ -16,6 +16,7 @@ namespace hyper
     {
         public static Controller controller;
         public static List<ConfigItem> configList;
+        public static bool SimulationMode { get; private set; }
 
         private static void SetupInputs(InputManager inputManager)
         {
@@ -97,6 +98,11 @@ namespace hyper
                 //for easier debugging, not meant to be used in production
                 initialized = Common.InitControllerAuto(startUdpMultiplexer, out controller, out errorMessage);
             }
+            else if (port == "simulate")
+            {
+                SimulationMode = true;
+                initialized = true;
+            }
             else
             {
                 initialized = Common.InitController(port, startUdpMultiplexer, out controller, out errorMessage);
@@ -107,10 +113,13 @@ namespace hyper
                 Common.logger.Error(errorMessage);
                 return;
             }
-            Program.controller = controller;
-            Common.logger.Info("Version: {0}", controller.Version);
-            Common.logger.Info("Included nodes: {0}", controller.IncludedNodes.Length);
-            Common.logger.Info("-----------------------------------");
+            if (!SimulationMode)
+            {
+                Program.controller = controller;
+                Common.logger.Info("Version: {0}", controller.Version);
+                Common.logger.Info("Included nodes: {0}", controller.IncludedNodes.Length);
+                Common.logger.Info("-----------------------------------");
+            }
 
             currentCommand = new InteractiveCommand(startArgs.Command, inputManager);
             currentCommand.Start();

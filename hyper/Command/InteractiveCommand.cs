@@ -117,15 +117,18 @@ namespace hyper
             ListenCommand listenComand = new ListenCommand(Program.controller, Program.configList);
             QueueCommand queueCommand = new QueueCommand(Program.controller, Program.configList, inputManager);
 
-            Thread InstanceCallerListen = new Thread(
-                new ThreadStart(() => listenComand.Start()));
+            if (!Program.SimulationMode)
+            {
+                Thread InstanceCallerListen = new Thread(
+                    new ThreadStart(() => listenComand.Start()));
 
-            InstanceCallerListen.Start();
+                InstanceCallerListen.Start();
 
-            Thread InstanceCallerQueue = new Thread(
-                new ThreadStart(() => queueCommand.Start()));
+                Thread InstanceCallerQueue = new Thread(
+                    new ThreadStart(() => queueCommand.Start()));
 
-            InstanceCallerQueue.Start();
+                InstanceCallerQueue.Start();
+            }
 
             do
             {
@@ -348,6 +351,11 @@ namespace hyper
                         }
                     case var basicSetVal when basicRegex.IsMatch(basicSetVal):
                         {
+                            if (Program.SimulationMode)
+                            {
+                                Common.logger.Info("Simulation Mode, ignoring command");
+                                break;
+                            }
                             blockExit = true;
                             var match = basicRegex.Match(basicSetVal);
                             var val = match.Groups[2].Value;
