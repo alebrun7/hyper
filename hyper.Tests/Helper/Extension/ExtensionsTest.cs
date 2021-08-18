@@ -94,6 +94,34 @@ namespace hyper.Tests.Helper.Extension
             Assert.AreEqual(0, floatVal);
         }
 
+        [TestMethod]
+        public void GetKeyValue_RelaisOn()
+        {
+            //
+            var cmd = new COMMAND_CLASS_BASIC_V2.BASIC_REPORT();
+            cmd.currentValue = 255;
+
+            bool recognized = cmd.GetKeyValue(out eventType, out floatVal);
+
+            Assert.IsTrue(recognized);
+            Assert.AreEqual(Enums.EventKey.STATE_ON, eventType);
+            Assert.AreEqual(1, floatVal);
+        }
+
+        [TestMethod]
+        public void GetKeyValue_RelaisOff()
+        {
+            //
+            var cmd = new COMMAND_CLASS_BASIC_V2.BASIC_REPORT();
+            cmd.currentValue = 0;
+
+            bool recognized = cmd.GetKeyValue(out eventType, out floatVal);
+
+            Assert.IsTrue(recognized);
+            Assert.AreEqual(Enums.EventKey.STATE_ON, eventType);
+            Assert.AreEqual(0, floatVal);
+        }
+
         private static COMMAND_CLASS_NOTIFICATION_V8.NOTIFICATION_REPORT NewNotificationReport(byte type, byte mevent)
         {
             var cmd = new COMMAND_CLASS_NOTIFICATION_V8.NOTIFICATION_REPORT();
