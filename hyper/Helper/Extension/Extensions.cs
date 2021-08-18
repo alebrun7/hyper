@@ -115,6 +115,12 @@ namespace hyper.Helper.Extension
                         floatVal = batteryReport.batteryLevel;
                         return true;
                     }
+                case COMMAND_CLASS_BASIC_V2.BASIC_REPORT basicReport:
+                    {
+                        eventType = Enums.EventKey.STATE_ON;
+                        floatVal = basicReport.currentValue == 255 ? 1.0f : 0.0f;
+                        return true;
+                    }
                 case COMMAND_CLASS_SWITCH_BINARY_V2.SWITCH_BINARY_REPORT binaryReport:
                     {
                         eventType = Enums.EventKey.STATE_ON;
