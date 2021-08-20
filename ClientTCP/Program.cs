@@ -81,7 +81,7 @@ namespace ClientTCP
                 {
                     client.SendAsync(line + "\n");
                 }
-                else
+                else if (line == null)
                 {
                     System.Threading.Thread.Sleep(500);
                     break;
