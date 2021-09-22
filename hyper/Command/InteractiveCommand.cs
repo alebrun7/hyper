@@ -104,6 +104,7 @@ namespace hyper
             var queueRegex = new Regex(@$"^queue\s*({oneTo255Regex}+(?:\s*,\s*{oneTo255Regex}+)*)\s*(config)");
             var multiRegex = new Regex(@$"^multi\s*({oneTo255Regex})\s*({zeroTo255Regex})\s*(false|true)");
             var simulateRegex = SimulateHelper.GetSimulateRegex(oneTo255Regex);
+            var simulateOnOffRegex = SimulateHelper.GetSimulateOnOffRegex(oneTo255Regex);
 
             Active = true;
             bool oneShot = args.Length > 0;
@@ -424,13 +425,20 @@ namespace hyper
                         }
                     case var simulateVal when simulateRegex.IsMatch(simulateVal):
                         {
-                            var helper = new SimulateHelper(simulateRegex, simulateVal);
+                            var helper = new SimulateHelper(simulateRegex, simulateVal, Program.controller);
                             helper.CreateCommand();
 
                             if (helper.Command != null)
                             {
                                 OutputManager.HandleCommand(helper.Command, helper.NodeId, 1);
                             }
+                            break;
+                        }
+                    case var simulateVal when simulateOnOffRegex.IsMatch(simulateVal):
+                        {
+                            var helper = new SimulateHelper(simulateOnOffRegex, simulateVal, Program.controller);
+                            Program.SimulationMode = helper.GetSimulationMode();
+                            Common.logger.Info($"Simulate Mode {Program.SimulationMode}");
                             break;
                         }
                     default:

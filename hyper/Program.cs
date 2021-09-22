@@ -16,7 +16,7 @@ namespace hyper
     {
         public static Controller controller;
         public static List<ConfigItem> configList;
-        public static bool SimulationMode { get; private set; }
+        public static bool SimulationMode { get; set; }
 
         private static void SetupInputs(InputManager inputManager)
         {

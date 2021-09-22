@@ -8,15 +8,22 @@ namespace hyper.Command
     public class SimulateHelper
     {
         private Match match;
+        private bool hasController;
 
         public static Regex GetSimulateRegex(string oneTo255Regex)
         {
             return new Regex(@$"^simulate\s+({oneTo255Regex})\s+(bin|bw|mk)\s+(false|true)"); //simulate 3 mk true => tür auf
         }
 
-        public SimulateHelper(Regex simulateRegex, string simulateVal)
+        public static Regex GetSimulateOnOffRegex(string oneTo255Regex)
+        {
+            return new Regex(@$"^simulate\s+(false|true)"); //simulate true => simulation mode on
+        }
+
+        public SimulateHelper(Regex simulateRegex, string simulateVal, object controller)
         {
             match = simulateRegex.Match(simulateVal);
+            hasController = (controller != null);
         }
 
         public byte NodeId { get; private set;}
@@ -62,6 +69,24 @@ namespace hyper.Command
                 Command.GetKeyValue(out Enums.EventKey eventKey, out float eventValue);
                 Common.logger.Info($"simulate event - id: {NodeId} - key: {eventKey} - value: {eventValue}");
             }
+        }
+
+        public bool GetSimulationMode()
+        {
+            if (match.Groups.Count == 2)
+            {
+                bool mode = bool.Parse(match.Groups[1].Value);
+                if (hasController || mode)
+                {
+                    return mode;
+                }
+                else
+                {
+                    Common.logger.Warn("No Controller, cannot stop Simulation Mode.");
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }
