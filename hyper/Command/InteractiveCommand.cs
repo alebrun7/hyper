@@ -27,15 +27,17 @@ namespace hyper
         private string args;
         private InputManager inputManager;
         private EventDAO eventDao = new EventDAO();
+        private bool simulationMode;
         private static readonly string oneTo255Regex = @"\b(?:[1-9]|[1-8][0-9]|9[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b";
         private static readonly string zeroTo255Regex = @"\b(?:[0-9]|[1-8][0-9]|9[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b";
 
         public static string OneTo255Regex { get { return oneTo255Regex; } }
 
-        public InteractiveCommand(string args, InputManager inputManager)
+        public InteractiveCommand(string args, InputManager inputManager, bool simulationMode)
         {
             this.args = args;
             this.inputManager = inputManager;
+            this.simulationMode = simulationMode;
         }
 
         public bool Active { get; private set; } = false;
@@ -118,7 +120,7 @@ namespace hyper
             ListenCommand listenComand = new ListenCommand(Program.controller, Program.configList);
             QueueCommand queueCommand = new QueueCommand(Program.controller, Program.configList, inputManager);
 
-            if (!Program.SimulationMode)
+            if (!simulationMode)
             {
                 Thread InstanceCallerListen = new Thread(
                     new ThreadStart(() => listenComand.Start()));
@@ -352,7 +354,7 @@ namespace hyper
                         }
                     case var basicSetVal when basicRegex.IsMatch(basicSetVal):
                         {
-                            if (Program.SimulationMode)
+                            if (simulationMode)
                             {
                                 Common.logger.Info("Simulation Mode, ignoring command");
                                 break;
@@ -437,8 +439,9 @@ namespace hyper
                     case var simulateVal when simulateOnOffRegex.IsMatch(simulateVal):
                         {
                             var helper = new SimulateHelper(simulateOnOffRegex, simulateVal, Program.controller);
-                            Program.SimulationMode = helper.GetSimulationMode();
-                            Common.logger.Info($"Simulate Mode {Program.SimulationMode}");
+                            simulationMode = helper.GetSimulationMode();
+                            listenComand.SimulationMode = simulationMode;
+                            Common.logger.Info($"Simulate Mode {simulationMode}");
                             break;
                         }
                     default:

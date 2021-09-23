@@ -16,7 +16,6 @@ namespace hyper
     {
         public static Controller controller;
         public static List<ConfigItem> configList;
-        public static bool SimulationMode { get; set; }
 
         private static void SetupInputs(InputManager inputManager)
         {
@@ -93,6 +92,8 @@ namespace hyper
             var port = startArgs.Port;
             bool startUdpMultiplexer = startArgs.StartUdpMultiplexer;
             bool initialized = false;
+            bool simulationMode = false;
+
             if (port == "auto")
             {
                 //for easier debugging, not meant to be used in production
@@ -100,7 +101,7 @@ namespace hyper
             }
             else if (port == "simulate")
             {
-                SimulationMode = true;
+                simulationMode = true;
                 initialized = true;
             }
             else
@@ -113,7 +114,7 @@ namespace hyper
                 Common.logger.Error(errorMessage);
                 return;
             }
-            if (!SimulationMode)
+            if (!simulationMode)
             {
                 Program.controller = controller;
                 Common.logger.Info("Version: {0}", controller.Version);
@@ -121,7 +122,7 @@ namespace hyper
                 Common.logger.Info("-----------------------------------");
             }
 
-            currentCommand = new InteractiveCommand(startArgs.Command, inputManager);
+            currentCommand = new InteractiveCommand(startArgs.Command, inputManager, simulationMode);
             currentCommand.Start();
 
             /*if (args[1] == "r" || args[1] == "replace" || args[1] == "c" || args[1] == "config")

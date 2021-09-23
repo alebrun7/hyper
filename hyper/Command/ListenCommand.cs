@@ -73,6 +73,8 @@ namespace hyper
         //    queueItems.Add(action);
         //}
 
+        public bool SimulationMode { private get; set; }
+
         public override bool Start()
         {
             Common.logger.Info("-----------");
@@ -149,6 +151,12 @@ namespace hyper
 
                     if (!filterActive && Debug)
                         Common.logger.Info(Util.ObjToJson(report));
+
+                    if (SimulationMode)
+                    {
+                        Common.logger.Info($"Simulation mode, ignoring event for id: {x.SrcNodeId}");
+                        return;
+                    }
 
                     if (!(report is COMMAND_CLASS_FIRMWARE_UPDATE_MD_V5.FIRMWARE_UPDATE_MD_GET))
                     {
