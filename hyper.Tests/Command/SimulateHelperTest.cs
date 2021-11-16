@@ -63,6 +63,25 @@ namespace hyper.Tests.Command
         }
 
         [TestMethod]
+        public void SimulateFt()
+        {
+            var helper = new SimulateHelper(regex, "simulate 3 ft true", dummyController);
+            helper.CreateCommand();
+            Assert.IsNotNull(helper.Command);
+            Assert.AreEqual(typeof(COMMAND_CLASS_BASIC_V2.BASIC_SET), helper.Command.GetType());
+            var basic_set = (COMMAND_CLASS_BASIC_V2.BASIC_SET)helper.Command;
+            Assert.AreEqual(255, basic_set.value);
+            Assert.AreEqual(3, helper.NodeId);
+
+            helper = new SimulateHelper(regex, "simulate 3 ft false", dummyController);
+            helper.CreateCommand();
+            Assert.IsNotNull(helper.Command);
+            Assert.AreEqual(typeof(COMMAND_CLASS_BASIC_V2.BASIC_SET), helper.Command.GetType());
+            basic_set = (COMMAND_CLASS_BASIC_V2.BASIC_SET)helper.Command;
+            Assert.AreEqual(0, basic_set.value);
+        }
+
+        [TestMethod]
         public void SimulateMk()
         {
             var helper = new SimulateHelper(regex, "simulate 3 mk true", dummyController);

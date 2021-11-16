@@ -12,7 +12,7 @@ namespace hyper.Command
 
         public static Regex GetSimulateRegex(string oneTo255Regex)
         {
-            return new Regex(@$"^simulate\s+({oneTo255Regex})\s+(bin|bw|mk)\s+(false|true)"); //simulate 3 mk true => tür auf
+            return new Regex(@$"^simulate\s+({oneTo255Regex})\s+(bin|bw|ft|mk)\s+(false|true)"); //simulate 3 mk true => tür auf
         }
 
         public static Regex GetSimulateOnOffRegex(string oneTo255Regex)
@@ -39,6 +39,7 @@ namespace hyper.Command
             switch (type)
             {
                 case "bin":
+                case "ft":
                     Command = new COMMAND_CLASS_BASIC_V2.BASIC_SET()
                     {
                         value = value ? (byte)255 : (byte)0
