@@ -134,6 +134,32 @@ namespace hyper.Helper.Extension
                         floatVal = basicSet.value == 255 ? 1.0f : 0.0f;
                         return true;
                     }
+                case COMMAND_CLASS_METER_V5.METER_REPORT meterReport:
+                    {
+                        // For example from ZW175 Smart Switch 7
+                        var p1 = meterReport.properties1;
+                        var meterType = (MeterReportMeterType)meterReport.properties1.meterType;
+                        var p2 = meterReport.properties2;
+                        var rateType = (MeterReporRateType)p1.rateType;
+                        var scaleBit10 = (MeterReportScalebit2EM)meterReport.properties2.scaleBits10;
+                        if (meterType == MeterReportMeterType.ElectricMeter
+                            && (rateType == MeterReporRateType.Import || rateType == MeterReporRateType.Unspecified)
+                            && scaleBit10 == MeterReportScalebit2EM.W)
+                        {
+                            eventType = Enums.EventKey.POWER;
+                            //GetInt32 supports the allowed values for size (1,2 or 4)
+                            floatVal = Tools.GetInt32(meterReport.meterValue.ToArray());
+                            /*
+                             * Precision (3 bits)
+                             * This field MUST indicate how many decimal places are included in the Meter Value field. For example,
+                             * the Meter Value field set to 1025 and this field set to 2 MUST be interpreted as equal to 10.25.
+                             * The value of the precision field MUST be in the range 0..7
+                            */
+                            floatVal /= MathF.Pow(10f, meterReport.properties2.precision);
+                            return true; ;
+                        }
+                        goto default;
+                    }
                 case COMMAND_CLASS_THERMOSTAT_SETPOINT_V3.THERMOSTAT_SETPOINT_REPORT report:
                     {
                         floatVal = -1;

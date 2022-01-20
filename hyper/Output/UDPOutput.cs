@@ -111,6 +111,25 @@ namespace hyper.Output
                         break;
                     }
 
+                case COMMAND_CLASS_METER_V5.METER_REPORT meterReport:
+                    {
+                        //fake SENSOR_MULTILEVEL because outlet does not know METER in alfred:
+                        commandClass = BitConverter.GetBytes((short)COMMAND_CLASS_SENSOR_MULTILEVEL_V11.ID);
+                        index = new byte[] { 0, (byte)MultiSensorType.SensorType.POWER };
+
+                        meterReport.GetKeyValue(out Enums.EventKey eventType, out float floatVal);
+                        values = BitConverter.GetBytes(floatVal);
+                        if (eventType == Enums.EventKey.POWER)
+                        {
+                            //support only POWER for now
+                            break;
+                        }
+                        else
+                        {
+                            return;
+                        }
+                    }
+
                 case COMMAND_CLASS_SWITCH_BINARY_V2.SWITCH_BINARY_REPORT binaryReport:
                     {
                         commandClass = BitConverter.GetBytes((short)COMMAND_CLASS_SWITCH_BINARY_V2.ID);
