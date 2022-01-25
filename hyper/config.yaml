@@ -236,6 +236,8 @@
 -   deviceName: Fibargroup FGSD002 Smoke Detector
     manufacturerId: 271 #0x010F
     productTypeId: 3074 #0x0C02
+    config:
+        20_2: 0 # Temperature report interval - 0: reports inactive - default: 1 = 10 seconds
     wakeup: 65535 # max value, a little more than 18 hours. 0 would disable wakeup completely - default was 6 hours
 
 # Fibargroup FGPB101 The Button
