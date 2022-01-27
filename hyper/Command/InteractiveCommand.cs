@@ -361,53 +361,7 @@ namespace hyper
                                 Common.logger.Info("Simulation Mode, ignoring command");
                                 break;
                             }
-                            blockExit = true;
-                            var match = basicRegex.Match(basicSetVal);
-                            var action = match.Groups[1].Value;
-                            var val = match.Groups[2].Value;
-                            var nodeId = byte.Parse(val);
-                            val = match.Groups[3].Value;
-                            var value = bool.Parse(val);
-                            var retry = match.Groups[4].Value == "!";
-                            var retriesVal = match.Groups[5].Value;
-                            int num_retries = 0;
-                            num_retries = numRetriesForBasic;
-                            if (retry)
-                            {
-                                if (!string.IsNullOrEmpty(retriesVal))
-                                {
-                                    int.TryParse(retriesVal, out num_retries);
-                                }
-                            }
-
-
-                            var success = false;
-                            if (action == "basic")
-                            {
-                                success = Common.SetBasic(Program.controller, nodeId, value);
-                            }
-                            else if (action == "binary")
-                            {
-                                success = Common.SetBinary(Program.controller, nodeId, value);
-                            }
-                            if (success)
-                            {
-                                Common.logger.Info("node {0}: {1} successful!", nodeId, action);
-                            }
-                            else if (num_retries > 0)
-                            {
-                                Common.logger.Warn("node {0}: {1} failed!", nodeId, action);
-                            }
-                            else
-                            {
-                                Common.logger.Error("node {0}: {1} failed!", nodeId, action);
-                            }
-                            if (!success && (num_retries>0))
-                            {
-                                string newCmd = action + " " + nodeId + " " + val + " !" + --num_retries;
-                                InjectCommandWithDelay(newCmd);
-                            }
-                            blockExit = false;
+                            BasicOrBinarySet(basicRegex, basicSetVal);
                             break;
                         }
                     case var basicGetVal when basicGetRegex.IsMatch(basicGetVal):
@@ -517,6 +471,57 @@ namespace hyper
             listenComand.Stop();
             Common.logger.Info("goodby master...");
             return true;
+        }
+
+        private void BasicOrBinarySet(Regex basicRegex, string basicSetVal)
+        {
+            blockExit = true;
+            var match = basicRegex.Match(basicSetVal);
+            var action = match.Groups[1].Value;
+            var val = match.Groups[2].Value;
+            var nodeId = byte.Parse(val);
+            val = match.Groups[3].Value;
+            var value = bool.Parse(val);
+            var retry = match.Groups[4].Value == "!";
+            var retriesVal = match.Groups[5].Value;
+            int num_retries = 0;
+            num_retries = numRetriesForBasic;
+            if (retry)
+            {
+                if (!string.IsNullOrEmpty(retriesVal))
+                {
+                    int.TryParse(retriesVal, out num_retries);
+                }
+            }
+
+
+            var success = false;
+            if (action == "basic")
+            {
+                success = Common.SetBasic(Program.controller, nodeId, value);
+            }
+            else if (action == "binary")
+            {
+                success = Common.SetBinary(Program.controller, nodeId, value);
+            }
+            if (success)
+            {
+                Common.logger.Info("node {0}: {1} successful!", nodeId, action);
+            }
+            else if (num_retries > 0)
+            {
+                Common.logger.Warn("node {0}: {1} failed!", nodeId, action);
+            }
+            else
+            {
+                Common.logger.Error("node {0}: {1} failed!", nodeId, action);
+            }
+            if (!success && (num_retries > 0))
+            {
+                string newCmd = action + " " + nodeId + " " + val + " !" + --num_retries;
+                InjectCommandWithDelay(newCmd);
+            }
+            blockExit = false;
         }
 
         private void InjectCommandWithDelay(string newCmd)
