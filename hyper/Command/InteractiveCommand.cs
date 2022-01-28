@@ -31,6 +31,7 @@ namespace hyper
         private static readonly string oneTo255Regex = @"\b(?:[1-9]|[1-8][0-9]|9[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b";
         private static readonly string zeroTo255Regex = @"\b(?:[0-9]|[1-8][0-9]|9[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b";
         private int numRetriesForBasic;
+        private int retryDelayForBasic = 10;
         //the set point for binary/basic_set for each device
         //retries must check it to avoid setting an obsolete value
         //should be thread safe to read an set single values
@@ -102,9 +103,9 @@ namespace hyper
             var wakeUpRegex = new Regex(@$"^wakeup\s*({oneTo255Regex})\s*([0-9]+)?");
             var wakeUpCapRegex = new Regex(@$"^wakeupcap\s*({oneTo255Regex})");
             var replaceRegex = new Regex(@$"^replace\s*({oneTo255Regex})");
-            var basicRegex = new Regex(@$"^(basic|binary)\s*({oneTo255Regex})\s*(false|true)\s*(!)?(\d)?");
+            var basicRegex = new Regex(@$"^(basic|binary)\s*({oneTo255Regex})\s*(false|true)\s*(!)?(\d+)?");
             var basicGetRegex = new Regex(@$"^(basic|binary)\s*({oneTo255Regex})");
-            var basicRetryRegex = new Regex(@$"^basicretry\s*(\d)?");
+            var basicRetryRegex = new Regex(@$"^basicretry\s*(\d+)?\s*(\d+)?");
             var listenRegex = new Regex(@$"^listen\s*(stop|start|filter\s*({oneTo255Regex}))");
             //var testRegex = new Regex(@"^firmware\s*" + oneTo255Regex);
             var forceRemoveRegex = new Regex(@$"^remove\s*({oneTo255Regex})");
@@ -399,15 +400,20 @@ namespace hyper
                     case var basicRetryVal when basicRetryRegex.IsMatch(basicRetryVal):
                         {
                             var val = basicRetryRegex.Match(basicRetryVal).Groups[1].Value;
+                            var valDelay = basicRetryRegex.Match(basicRetryVal).Groups[2].Value;
                             if (string.IsNullOrEmpty(val))
                             {
                                 //get:
-                                Common.logger.Info("basicretry is: {0}", numRetriesForBasic);
+                                Common.logger.Info($"basicretry is: {numRetriesForBasic}, delay: {retryDelayForBasic}");
                             }
                             else
                             {
                                 numRetriesForBasic = int.Parse(val);
-                                Common.logger.Info("basicretry set to: {0}", numRetriesForBasic);
+                                if (!string.IsNullOrEmpty(valDelay))
+                                {
+                                    retryDelayForBasic = int.Parse(valDelay);
+                                }
+                                Common.logger.Info($"basicretry set to: {numRetriesForBasic}, delay {retryDelayForBasic}");
                             }
                             break;
                         }
@@ -556,11 +562,10 @@ namespace hyper
 
         private void InjectCommandWithDelay(string newCmd)
         {
-            // waits 10 seconds (asynchronoulsy), then queues the new command.
+            // waits (asynchronoulsy), then queues the new command.
             // does not block the command thread during the delay
-            int tenSeconds = 10; //delay is in millis
-            Common.logger.Info($"injecting retry command with {tenSeconds} seconds delay");
-            Task task = Task.Delay(tenSeconds * 1000)
+            Common.logger.Info($"injecting retry command with {retryDelayForBasic} seconds delay");
+            Task task = Task.Delay(retryDelayForBasic * 1000)
                 .ContinueWith(t => inputManager.InjectCommand(newCmd));
         }
 
