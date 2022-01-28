@@ -31,6 +31,11 @@ namespace hyper
         private static readonly string oneTo255Regex = @"\b(?:[1-9]|[1-8][0-9]|9[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b";
         private static readonly string zeroTo255Regex = @"\b(?:[0-9]|[1-8][0-9]|9[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b";
         private int numRetriesForBasic;
+        //the set point for binary/basic_set for each device
+        //retries must check it to avoid setting an obsolete value
+        //should be thread safe to read an set single values
+        //moreover, the commands are always executed in the same thread
+        private bool[] setPoints = new bool[256];
 
         public static string OneTo255Regex { get { return oneTo255Regex; } }
 
@@ -361,7 +366,9 @@ namespace hyper
                                 Common.logger.Info("Simulation Mode, ignoring command");
                                 break;
                             }
+                            blockExit = true;
                             BasicOrBinarySet(basicRegex, basicSetVal);
+                            blockExit = false;
                             break;
                         }
                     case var basicGetVal when basicGetRegex.IsMatch(basicGetVal):
@@ -475,7 +482,6 @@ namespace hyper
 
         private void BasicOrBinarySet(Regex basicRegex, string basicSetVal)
         {
-            blockExit = true;
             var match = basicRegex.Match(basicSetVal);
             var action = match.Groups[1].Value;
             var val = match.Groups[2].Value;
@@ -485,16 +491,36 @@ namespace hyper
             var retry = match.Groups[4].Value == "!";
             var retriesVal = match.Groups[5].Value;
             int num_retries = 0;
-            num_retries = numRetriesForBasic;
+
             if (retry)
             {
+                //it is a retry. the number of retries left is explicit in the command
                 if (!string.IsNullOrEmpty(retriesVal))
                 {
                     int.TryParse(retriesVal, out num_retries);
                 }
             }
+            else
+            {
+                //call without ! -> direct from alfred or console
+                //the value is a new set point
+                setPoints[nodeId] = value;
+                //and the number of retries comes for the configuration
+                num_retries = numRetriesForBasic;
+            }
 
+            if (value == setPoints[nodeId])
+            {
+                BasicOrBinary(action, nodeId, value, num_retries);
+            }
+            else {
+                Common.logger.Info("node {0}: {1} retry cancelled due to different set point!", nodeId, action);
+                return; //retrying and another command came in the meantime. abort the retries!
+            }
+        }
 
+        private void BasicOrBinary(string action, byte nodeId, bool value, int num_retries)
+        {
             var success = false;
             if (action == "basic")
             {
@@ -504,6 +530,16 @@ namespace hyper
             {
                 success = Common.SetBinary(Program.controller, nodeId, value);
             }
+            LogBasicOutcome(action, nodeId, num_retries, success);
+            if (!success && (num_retries > 0))
+            {
+                string newCmd = action + " " + nodeId + " " + value + " !" + --num_retries;
+                InjectCommandWithDelay(newCmd);
+            }
+        }
+
+        private static void LogBasicOutcome(string action, byte nodeId, int num_retries, bool success)
+        {
             if (success)
             {
                 Common.logger.Info("node {0}: {1} successful!", nodeId, action);
@@ -516,12 +552,6 @@ namespace hyper
             {
                 Common.logger.Error("node {0}: {1} failed!", nodeId, action);
             }
-            if (!success && (num_retries > 0))
-            {
-                string newCmd = action + " " + nodeId + " " + val + " !" + --num_retries;
-                InjectCommandWithDelay(newCmd);
-            }
-            blockExit = false;
         }
 
         private void InjectCommandWithDelay(string newCmd)
