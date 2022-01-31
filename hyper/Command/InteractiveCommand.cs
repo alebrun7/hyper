@@ -21,6 +21,9 @@ namespace hyper
 {
     public class InteractiveCommand : BaseCommand
     {
+        private const string RETRYDELAYSFORBASIC_DEFAULT = "";
+        private const string RETRYDELAYSFORBASIC_KEY = "retryDelaysForBasic";
+
         private ICommand currentCommand = null;
 
         private bool blockExit = false;
@@ -30,8 +33,7 @@ namespace hyper
         private bool simulationMode;
         private static readonly string oneTo255Regex = @"\b(?:[1-9]|[1-8][0-9]|9[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b";
         private static readonly string zeroTo255Regex = @"\b(?:[0-9]|[1-8][0-9]|9[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b";
-        private int numRetriesForBasic;
-        private int retryDelayForBasic = 10;
+        private int[] retryDelaysForBasic = new int[0];
         //the set point for binary/basic_set for each device
         //retries must check it to avoid setting an obsolete value
         //should be thread safe to read an set single values
@@ -93,6 +95,8 @@ namespace hyper
 
         public override bool Start()
         {
+            ReadProgramConfig();
+
             Console.CancelKeyPress += new ConsoleCancelEventHandler(CancelHandler);
             inputManager.CancelKeyPress += new ConsoleCancelEventHandler(CancelHandler);
             // InputManager.AddCancelEventHandler(CancelHandler);
@@ -105,7 +109,6 @@ namespace hyper
             var replaceRegex = new Regex(@$"^replace\s*({oneTo255Regex})");
             var basicRegex = new Regex(@$"^(basic|binary)\s*({oneTo255Regex})\s*(false|true)\s*(!)?(\d+)?");
             var basicGetRegex = new Regex(@$"^(basic|binary)\s*({oneTo255Regex})");
-            var basicRetryRegex = new Regex(@$"^basicretry\s*(\d+)?\s*(\d+)?");
             var listenRegex = new Regex(@$"^listen\s*(stop|start|filter\s*({oneTo255Regex}))");
             //var testRegex = new Regex(@"^firmware\s*" + oneTo255Regex);
             var forceRemoveRegex = new Regex(@$"^remove\s*({oneTo255Regex})");
@@ -233,6 +236,8 @@ namespace hyper
                             Common.logger.Info("Reloading conifg!");
                             Program.configList = Common.ParseConfig("config.yaml");
                             listenComand.UpdateConfig(Program.configList);
+                            Program.programConfig.LoadFromFile();
+                            ReadProgramConfig();
                             break;
                         }
                     case var batteryVal when batteryRegex.IsMatch(batteryVal):
@@ -397,26 +402,6 @@ namespace hyper
                             blockExit = false;
                             break;
                         }
-                    case var basicRetryVal when basicRetryRegex.IsMatch(basicRetryVal):
-                        {
-                            var val = basicRetryRegex.Match(basicRetryVal).Groups[1].Value;
-                            var valDelay = basicRetryRegex.Match(basicRetryVal).Groups[2].Value;
-                            if (string.IsNullOrEmpty(val))
-                            {
-                                //get:
-                                Common.logger.Info($"basicretry is: {numRetriesForBasic}, delay: {retryDelayForBasic}");
-                            }
-                            else
-                            {
-                                numRetriesForBasic = int.Parse(val);
-                                if (!string.IsNullOrEmpty(valDelay))
-                                {
-                                    retryDelayForBasic = int.Parse(valDelay);
-                                }
-                                Common.logger.Info($"basicretry set to: {numRetriesForBasic}, delay {retryDelayForBasic}");
-                            }
-                            break;
-                        }
                     case var configVal when configRegex.IsMatch(configVal):
                         {
                             var val = configRegex.Match(configVal).Groups[1].Value;
@@ -486,6 +471,19 @@ namespace hyper
             return true;
         }
 
+        private void ReadProgramConfig()
+        {
+            retryDelaysForBasic = Program.programConfig.GetIntListValueOrDefault(RETRYDELAYSFORBASIC_KEY, RETRYDELAYSFORBASIC_DEFAULT);
+            if (retryDelaysForBasic.Length > 0)
+            {
+                Common.logger.Info("retryDelaysForBasic: {0}", string.Join<int>(" ", retryDelaysForBasic));
+            }
+            else
+            {
+                Common.logger.Info("retries disabled for basic");
+            }
+        }
+
         private void BasicOrBinarySet(Regex basicRegex, string basicSetVal)
         {
             var match = basicRegex.Match(basicSetVal);
@@ -495,15 +493,15 @@ namespace hyper
             val = match.Groups[3].Value;
             var value = bool.Parse(val);
             var retry = match.Groups[4].Value == "!";
-            var retriesVal = match.Groups[5].Value;
-            int num_retries = 0;
+            var retryNumVal = match.Groups[5].Value;
+            int retryNum = 0;
 
             if (retry)
             {
-                //it is a retry. the number of retries left is explicit in the command
-                if (!string.IsNullOrEmpty(retriesVal))
+                //it is a retry. the number of the retry is explicit in the command
+                if (!string.IsNullOrEmpty(retryNumVal))
                 {
-                    int.TryParse(retriesVal, out num_retries);
+                    int.TryParse(retryNumVal, out retryNum);
                 }
             }
             else
@@ -511,21 +509,19 @@ namespace hyper
                 //call without ! -> direct from alfred or console
                 //the value is a new set point
                 setPoints[nodeId] = value;
-                //and the number of retries comes for the configuration
-                num_retries = numRetriesForBasic;
             }
 
             if (value == setPoints[nodeId])
             {
-                BasicOrBinary(action, nodeId, value, num_retries);
+                BasicOrBinary(action, nodeId, value, retryNum);
             }
             else {
+                //retrying and another command came in the meantime. abort the retries!
                 Common.logger.Info("node {0}: {1} retry cancelled due to different set point!", nodeId, action);
-                return; //retrying and another command came in the meantime. abort the retries!
             }
         }
 
-        private void BasicOrBinary(string action, byte nodeId, bool value, int num_retries)
+        private void BasicOrBinary(string action, byte nodeId, bool value, int retryNum)
         {
             var success = false;
             if (action == "basic")
@@ -536,21 +532,22 @@ namespace hyper
             {
                 success = Common.SetBinary(Program.controller, nodeId, value);
             }
-            LogBasicOutcome(action, nodeId, num_retries, success);
-            if (!success && (num_retries > 0))
+            LogBasicOutcome(action, nodeId, retryNum, success);
+            if (!success && (retryNum < retryDelaysForBasic.Length))
             {
-                string newCmd = action + " " + nodeId + " " + value + " !" + --num_retries;
-                InjectCommandWithDelay(newCmd);
+                int delay = retryDelaysForBasic[retryNum];
+                string newCmd = action + " " + nodeId + " " + value + " !" + ++retryNum;
+                InjectCommandWithDelay(newCmd, delay);
             }
         }
 
-        private static void LogBasicOutcome(string action, byte nodeId, int num_retries, bool success)
+        private void LogBasicOutcome(string action, byte nodeId, int retryNum, bool success)
         {
             if (success)
             {
                 Common.logger.Info("node {0}: {1} successful!", nodeId, action);
             }
-            else if (num_retries > 0)
+            else if (retryNum < retryDelaysForBasic.Length)
             {
                 Common.logger.Warn("node {0}: {1} failed!", nodeId, action);
             }
@@ -560,12 +557,12 @@ namespace hyper
             }
         }
 
-        private void InjectCommandWithDelay(string newCmd)
+        private void InjectCommandWithDelay(string newCmd, int delay)
         {
             // waits (asynchronoulsy), then queues the new command.
             // does not block the command thread during the delay
-            Common.logger.Info($"injecting retry command with {retryDelayForBasic} seconds delay");
-            Task task = Task.Delay(retryDelayForBasic * 1000)
+            Common.logger.Info($"injecting retry command with {delay} seconds delay");
+            Task task = Task.Delay(delay * 1000)
                 .ContinueWith(t => inputManager.InjectCommand(newCmd));
         }
 

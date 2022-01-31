@@ -1,0 +1,5 @@
+﻿# Example for programconfig.yaml
+# copy to programconfig.yaml to set the parameters
+# programconfig_template.yaml will be overwritten by the next update
+#retryDelaysForBasic: 5 10 20 40 60 60 60 60 60 60 60 60 60 60
+retryDelaysForBasic:

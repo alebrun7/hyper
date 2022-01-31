@@ -16,6 +16,7 @@ namespace hyper
     {
         public static Controller controller;
         public static List<ConfigItem> configList;
+        public static ProgramConfig programConfig;
 
         private static void SetupInputs(InputManager inputManager)
         {
@@ -77,6 +78,10 @@ namespace hyper
             }
             Program.configList = config;
             Common.logger.Info("Got configuration for " + config.Count + " devices.");
+
+            programConfig = new ProgramConfig();
+            programConfig.LoadFromFile();
+
             Common.logger.Info("-----------------------------------");
 
             var startArgs = new StartArguments(args);
