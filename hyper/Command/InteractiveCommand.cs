@@ -21,6 +21,12 @@ namespace hyper
 {
     public class InteractiveCommand : BaseCommand
     {
+        struct BasicRetryInfo
+        {
+            public bool setPoint;
+            public CancellationTokenSource cancellationTokenSource;
+        }
+
         private const string RETRYDELAYSFORBASIC_DEFAULT = "";
         private const string RETRYDELAYSFORBASIC_KEY = "retryDelaysForBasic";
 
@@ -38,7 +44,7 @@ namespace hyper
         //retries must check it to avoid setting an obsolete value
         //should be thread safe to read an set single values
         //moreover, the commands are always executed in the same thread
-        private bool[] setPoints = new bool[256];
+        BasicRetryInfo[] basicRetryInfos  = new BasicRetryInfo[256];
 
         public static string OneTo255Regex { get { return oneTo255Regex; } }
 
@@ -508,16 +514,31 @@ namespace hyper
             {
                 //call without ! -> direct from alfred or console
                 //the value is a new set point
-                setPoints[nodeId] = value;
+                DisposeCancellationSource(nodeId, true);
+                basicRetryInfos[nodeId].setPoint = value;
             }
 
-            if (value == setPoints[nodeId])
+            if (value == basicRetryInfos[nodeId].setPoint)
             {
                 BasicOrBinary(action, nodeId, value, retryNum);
             }
             else {
                 //retrying and another command came in the meantime. abort the retries!
                 Common.logger.Info("node {0}: {1} retry cancelled due to different set point!", nodeId, action);
+            }
+        }
+
+        private void DisposeCancellationSource(byte nodeId, bool cancel)
+        {
+            if (basicRetryInfos[nodeId].cancellationTokenSource != null)
+            {
+                if (cancel) {
+                    Common.logger.Info($"cancel retry task for node {nodeId}");
+                    basicRetryInfos[nodeId].cancellationTokenSource.Cancel();
+                }
+                Common.logger.Info($"dispose retry task token source for node {nodeId}");
+                basicRetryInfos[nodeId].cancellationTokenSource.Dispose();
+                basicRetryInfos[nodeId].cancellationTokenSource = null;
             }
         }
 
@@ -532,12 +553,20 @@ namespace hyper
             {
                 success = Common.SetBinary(Program.controller, nodeId, value);
             }
+            if (success)
+            {
+                DisposeCancellationSource(nodeId, false);
+            }
             LogBasicOutcome(action, nodeId, retryNum, success);
             if (!success && (retryNum < retryDelaysForBasic.Length))
             {
                 int delay = retryDelaysForBasic[retryNum];
                 string newCmd = action + " " + nodeId + " " + value + " !" + ++retryNum;
-                InjectCommandWithDelay(newCmd, delay);
+                if (basicRetryInfos[nodeId].cancellationTokenSource == null)
+                {
+                    basicRetryInfos[nodeId].cancellationTokenSource = new CancellationTokenSource();
+                }
+                InjectCommandWithDelay(newCmd, delay, basicRetryInfos[nodeId].cancellationTokenSource.Token);
             }
         }
 
@@ -557,13 +586,14 @@ namespace hyper
             }
         }
 
-        private void InjectCommandWithDelay(string newCmd, int delay)
+        private void InjectCommandWithDelay(string newCmd, int delay, CancellationToken token)
         {
             // waits (asynchronoulsy), then queues the new command.
             // does not block the command thread during the delay
             Common.logger.Info($"injecting retry command with {delay} seconds delay");
+
             Task task = Task.Delay(delay * 1000)
-                .ContinueWith(t => inputManager.InjectCommand(newCmd));
+                .ContinueWith(t => inputManager.InjectCommand(newCmd), token);
         }
 
         private static void WakeUp(Regex wakeUpRegex, string cmd)
