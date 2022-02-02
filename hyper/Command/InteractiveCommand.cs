@@ -37,7 +37,7 @@ namespace hyper
         //the request number of binary/basic for each device
         //retries must check it to avoid setting an obsolete value
         //it is not thread safe, but the commands are always executed in the same thread
-        IDictionary<byte, byte> basicRequestNummers = new Dictionary<byte, byte>();
+        IDictionary<byte, byte> basicRequestNumbers = new Dictionary<byte, byte>();
 
         public static string OneTo255Regex { get { return oneTo255Regex; } }
 
@@ -106,7 +106,8 @@ namespace hyper
             var wakeUpRegex = new Regex(@$"^wakeup\s*({oneTo255Regex})\s*([0-9]+)?");
             var wakeUpCapRegex = new Regex(@$"^wakeupcap\s*({oneTo255Regex})");
             var replaceRegex = new Regex(@$"^replace\s*({oneTo255Regex})");
-            var basicRegex = new Regex(@$"^(basic|binary)\s*({oneTo255Regex})\s*(false|true)\s*(!)?(\d+)?\s*(\d+)?");
+            var basicRegex = new Regex(@$"^(basic|binary)\s*({oneTo255Regex})\s*(false|true)");
+            var retryRegex = new Regex(@$"^(basic|binary)retry\s*({oneTo255Regex})\s*(false|true)\s*(\d+)?\s*(\d+)?");
             var basicGetRegex = new Regex(@$"^(basic|binary)\s*({oneTo255Regex})");
             var listenRegex = new Regex(@$"^listen\s*(stop|start|filter\s*({oneTo255Regex}))");
             //var testRegex = new Regex(@"^firmware\s*" + oneTo255Regex);
@@ -376,6 +377,11 @@ namespace hyper
                             blockExit = false;
                             break;
                         }
+                    case var retryVal when retryRegex.IsMatch(retryVal):
+                        blockExit = true;
+                        BasicOrBinarySetRetry(retryRegex, retryVal);
+                        blockExit = false;
+                        break;
                     case var basicGetVal when basicGetRegex.IsMatch(basicGetVal):
                         {
                             blockExit = true;
@@ -483,7 +489,7 @@ namespace hyper
             }
         }
 
-        private void BasicOrBinarySet(Regex basicRegex, string basicSetVal)
+         private void BasicOrBinarySet(Regex basicRegex, string basicSetVal)
         {
             var match = basicRegex.Match(basicSetVal);
             var action = match.Groups[1].Value;
@@ -491,45 +497,49 @@ namespace hyper
             var nodeId = byte.Parse(val);
             val = match.Groups[3].Value;
             var value = bool.Parse(val);
-            var retry = match.Groups[4].Value == "!";
-            var retryNumVal = match.Groups[5].Value;
-            int retryNum = 0;
-            var retryRequestNumberVal = match.Groups[6].Value;
-            byte requestNumber = 0;
 
-            if (retry)
-            {
-                //it is a retry. the number of the retry is explicit in the command
-                if (!string.IsNullOrEmpty(retryNumVal))
-                {
-                    int.TryParse(retryNumVal, out retryNum);
-                }
-                if (!string.IsNullOrEmpty(retryRequestNumberVal))
-                {
-                    byte.TryParse(retryRequestNumberVal, out requestNumber);
-                }
+            if (basicRequestNumbers.ContainsKey(nodeId)) {
+                ++basicRequestNumbers[nodeId];
             }
             else
             {
-                //call without ! -> direct from alfred or console
-                if (basicRequestNummers.ContainsKey(nodeId)) {
-                    requestNumber = ++basicRequestNummers[nodeId];
-                }
-                else
-                {
-                    basicRequestNummers.Add(nodeId, requestNumber);
-                }
+                basicRequestNumbers.Add(nodeId, 0);
             }
+            BasicOrBinary(action, nodeId, value, 0, basicRequestNumbers[nodeId]);
+        }
 
-            if (requestNumber == basicRequestNummers[nodeId])
+        private void BasicOrBinarySetRetry(Regex retryRegex, string retryVal)
+        {
+            var match = retryRegex.Match(retryVal);
+            var action = match.Groups[1].Value;
+            var val = match.Groups[2].Value;
+            var nodeId = byte.Parse(val);
+            val = match.Groups[3].Value;
+            var value = bool.Parse(val);
+            var retryNumVal = match.Groups[4].Value;
+            int retryNum = 0;
+            var retryRequestNumberVal = match.Groups[5].Value;
+            byte requestNumber = 0;
+
+            //it is a retry. the number of the retry is explicit in the command
+            if (!string.IsNullOrEmpty(retryNumVal))
+            {
+                int.TryParse(retryNumVal, out retryNum);
+            }
+            if (!string.IsNullOrEmpty(retryRequestNumberVal))
+            {
+                byte.TryParse(retryRequestNumberVal, out requestNumber);
+            }
+            if (requestNumber == basicRequestNumbers[nodeId])
             {
                 BasicOrBinary(action, nodeId, value, retryNum, requestNumber);
             }
-            else {
+            else
+            {
                 //retrying and another command came in the meantime. abort the retries!
                 Common.logger.Info("node {0}: {1} retry cancelled for obsolete command", nodeId, action);
                 Common.logger.Debug("node {0}, retryRequestNumber {1}, current requestNummer {2}",
-                    nodeId, requestNumber, basicRequestNummers[nodeId]);
+                    nodeId, requestNumber, basicRequestNumbers[nodeId]);
             }
         }
 
@@ -548,7 +558,7 @@ namespace hyper
             if (!success && (retryNum < retryDelaysForBasic.Length))
             {
                 int delay = retryDelaysForBasic[retryNum];
-                string newCmd = action + " " + nodeId + " " + value + " !" + ++retryNum + " " + requestNumber;
+                string newCmd = action + "retry " + nodeId + " " + value + " " + ++retryNum + " " + requestNumber;
                 InjectCommandWithDelay(newCmd, delay);
             }
         }
