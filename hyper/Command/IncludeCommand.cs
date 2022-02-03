@@ -13,13 +13,15 @@ namespace hyper
         private readonly Controller controller;
         private readonly List<ConfigItem> configList;
         private readonly string profile;
+        private static Regex regex = new Regex(@$"^include\b\s*([a-zA-Z_]+)?");
 
-        public static Regex GetRegex(string oneTo255Regex)
+
+        public static bool IsMatch(string includeVal)
         {
-            return new Regex(@$"^include\b\s*([a-zA-Z_]+)?");
+            return regex.IsMatch(includeVal);
         }
 
-        public static string GetProfile(string input, Regex regex)
+        public static string GetProfile(string input)
         {
             return regex.Match(input).Groups[1].Value;
         }

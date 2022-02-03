@@ -10,6 +10,8 @@ namespace hyper
 {
     public class ReplaceCommand : BaseCommand
     {
+        private static Regex regex = new Regex(@$"^replace\b\s*({OneTo255Regex})\s*([a-zA-Z_]+)?");
+
         private readonly Controller controller;
         private readonly byte nodeId;
         private readonly List<ConfigItem> configList;
@@ -21,17 +23,17 @@ namespace hyper
         private bool abort = false;
 
 
-        public static Regex GetRegex(string oneTo255Regex)
+        public static bool IsMatch(string input)
         {
-            return new Regex(@$"^replace\b\s*({oneTo255Regex})\s*([a-zA-Z_]+)?");
+            return regex.IsMatch(input);
         }
 
-        public static string GetProfile(string input, Regex regex)
+        public static string GetProfile(string input)
         {
             return regex.Match(input).Groups[2].Value;
         }
 
-        public static byte GetNodeId(string command, Regex regex)
+        public static byte GetNodeId(string command)
         {
             var val = regex.Match(command).Groups[1].Value;
             return byte.Parse(val);

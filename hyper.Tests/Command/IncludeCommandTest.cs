@@ -11,9 +11,7 @@ namespace hyper.Tests.Command
         [TestMethod]
         public void GetRegex_WithoutProfile()
         {
-            Regex regex = IncludeCommand.GetRegex(InteractiveCommand.OneTo255Regex);
-
-            bool isMatch = regex.IsMatch("include");
+            bool isMatch = IncludeCommand.IsMatch("include");
 
             Assert.IsTrue(isMatch);
         }
@@ -21,9 +19,7 @@ namespace hyper.Tests.Command
         [TestMethod]
         public void GetRegex_DoNotMachIncluded()
         {
-            Regex regex = IncludeCommand.GetRegex(InteractiveCommand.OneTo255Regex);
-
-            bool isMatch = regex.IsMatch("included");
+            bool isMatch = IncludeCommand.IsMatch("included");
 
             Assert.IsFalse(isMatch);
         }
@@ -31,12 +27,11 @@ namespace hyper.Tests.Command
         [TestMethod]
         public void GetRegex_WithProfile()
         {
-            Regex regex = IncludeCommand.GetRegex(InteractiveCommand.OneTo255Regex);
             const string ExpectedProfile = "battery";
             const string Command = "include " + ExpectedProfile;
 
-            bool isMatch = regex.IsMatch(Command);
-            string profile = IncludeCommand.GetProfile(Command, regex);
+            bool isMatch = IncludeCommand.IsMatch(Command);
+            string profile = IncludeCommand.GetProfile(Command);
 
             Assert.IsTrue(isMatch);
             Assert.AreEqual(ExpectedProfile, profile);

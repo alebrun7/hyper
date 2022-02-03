@@ -8,14 +8,10 @@ namespace hyper.Tests.Command
     [TestClass]
     public class ReplaceCommandTest
     {
-        private Regex ReplaceRegex { get{ return ReplaceCommand.GetRegex(InteractiveCommand.OneTo255Regex); } }
-
         [TestMethod]
-        public void GetRegex_WithoutProfile()
+        public void IsMatch_WithoutProfile_ReturnsTrue()
         {
-            Regex regex = ReplaceCommand.GetRegex(InteractiveCommand.OneTo255Regex);
-
-            bool isMatch = regex.IsMatch("replace 2");
+            bool isMatch = ReplaceCommand.IsMatch("replace 2");
 
             Assert.IsTrue(isMatch);
         }
@@ -26,7 +22,7 @@ namespace hyper.Tests.Command
             const byte NodeId = 2;
             string command = "replace " + NodeId;
 
-            byte actualId = ReplaceCommand.GetNodeId(command, ReplaceRegex);
+            byte actualId = ReplaceCommand.GetNodeId(command);
 
             Assert.AreEqual(NodeId, actualId);
         }
@@ -34,12 +30,11 @@ namespace hyper.Tests.Command
         [TestMethod]
         public void GetRegex_WithProfile()
         {
-            Regex regex = ReplaceCommand.GetRegex(InteractiveCommand.OneTo255Regex);
             const string ExpectedProfile = "battery";
             const string Command = "replace 2 " + ExpectedProfile;
 
-            bool isMatch = regex.IsMatch(Command);
-            string profile = ReplaceCommand.GetProfile(Command, regex);
+            bool isMatch = ReplaceCommand.IsMatch(Command);
+            string profile = ReplaceCommand.GetProfile(Command);
 
             Assert.IsTrue(isMatch);
             Assert.AreEqual(ExpectedProfile, profile);

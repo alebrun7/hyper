@@ -7,22 +7,31 @@ namespace hyper.Command
 {
     public class SimulateHelper
     {
+        private static Regex simulateRegex = new Regex(@$"^simulate\s+({BaseCommand.OneTo255Regex})\s+(bin|bw|ft|mk)\s+(false|true)"); //simulate 3 mk true => tür auf
+        private static Regex simulateOnOffRegex = new Regex(@$"^simulate\s+(false|true)"); //simulate true => simulation mode on
+
         private Match match;
         private bool hasController;
 
-        public static Regex GetSimulateRegex(string oneTo255Regex)
+        public static bool MatchesSimulate(string simulateVal)
         {
-            return new Regex(@$"^simulate\s+({oneTo255Regex})\s+(bin|bw|ft|mk)\s+(false|true)"); //simulate 3 mk true => tür auf
+            return simulateRegex.IsMatch(simulateVal);
         }
 
-        public static Regex GetSimulateOnOffRegex(string oneTo255Regex)
+        public static bool MatchesSimulateOnOff(string command)
         {
-            return new Regex(@$"^simulate\s+(false|true)"); //simulate true => simulation mode on
+            return simulateOnOffRegex.IsMatch(command);
         }
 
-        public SimulateHelper(Regex simulateRegex, string simulateVal, object controller)
+        public SimulateHelper(string simulateVal, object controller)
         {
-            match = simulateRegex.Match(simulateVal);
+            if (simulateRegex.IsMatch(simulateVal)) {
+                match = simulateRegex.Match(simulateVal);
+            }
+            else
+            {
+                match = simulateOnOffRegex.Match(simulateVal);
+            }
             hasController = (controller != null);
         }
 

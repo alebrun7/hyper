@@ -39,8 +39,6 @@ namespace hyper
         //it is not thread safe, but the commands are always executed in the same thread
         IDictionary<byte, byte> basicRequestNumbers = new Dictionary<byte, byte>();
 
-        public static string OneTo255Regex { get { return oneTo255Regex; } }
-
         public InteractiveCommand(string args, InputManager inputManager, bool simulationMode)
         {
             this.args = args;
@@ -105,20 +103,15 @@ namespace hyper
             var configRegex = new Regex(@$"^config\s*({oneTo255Regex})\s*(!)?");
             var wakeUpRegex = new Regex(@$"^wakeup\s*({oneTo255Regex})\s*([0-9]+)?");
             var wakeUpCapRegex = new Regex(@$"^wakeupcap\s*({oneTo255Regex})");
-            var includeRegex = IncludeCommand.GetRegex(oneTo255Regex);
-            var replaceRegex = ReplaceCommand.GetRegex(oneTo255Regex);
             var basicRegex = new Regex(@$"^(basic|binary)\s*({oneTo255Regex})\s*(false|true)");
             var retryRegex = new Regex(@$"^(basic|binary)retry\s*({oneTo255Regex})\s*(false|true)\s*(\d+)?\s*(\d+)?");
             var basicGetRegex = new Regex(@$"^(basic|binary)\s*({oneTo255Regex})");
             var listenRegex = new Regex(@$"^listen\s*(stop|start|filter\s*({oneTo255Regex}))");
-            //var testRegex = new Regex(@"^firmware\s*" + oneTo255Regex);
             var forceRemoveRegex = new Regex(@$"^remove\s*({oneTo255Regex})");
             var debugRegex = new Regex(@"^debug\s*(false|true)");
             var lastEventsRegex = new Regex(@$"^show\s*({zeroTo255Regex})\s*({zeroTo255Regex})?\s*([a-zA-Z_]+)?");
             var queueRegex = new Regex(@$"^queue\s*({oneTo255Regex}+(?:\s*,\s*{oneTo255Regex}+)*)\s*(config)");
             var multiRegex = new Regex(@$"^multi\s*({oneTo255Regex})\s*({zeroTo255Regex})\s*(false|true)");
-            var simulateRegex = SimulateHelper.GetSimulateRegex(oneTo255Regex);
-            var simulateOnOffRegex = SimulateHelper.GetSimulateOnOffRegex(oneTo255Regex);
 
             Active = true;
             bool oneShot = args.Length > 0;
@@ -193,9 +186,9 @@ namespace hyper
                             blockExit = false;
                             break;
                         }
-                    case var includeVal when includeRegex.IsMatch(includeVal):
+                    case var includeVal when IncludeCommand.IsMatch(includeVal):
                         {
-                            string profile = IncludeCommand.GetProfile(includeVal, includeRegex);
+                            string profile = IncludeCommand.GetProfile(includeVal);
                             currentCommand = new IncludeCommand(Program.controller, Program.configList, profile);
                             break;
                         }
@@ -422,16 +415,16 @@ namespace hyper
                     case var cmdVal when wakeUpCapRegex.IsMatch(cmdVal):
                         GetWakeUpCapabilities(wakeUpCapRegex, cmdVal);
                         break;
-                    case var replaceVal when replaceRegex.IsMatch(replaceVal):
+                    case var replaceVal when ReplaceCommand.IsMatch(replaceVal):
                         {
-                            var nodeId = ReplaceCommand.GetNodeId(replaceVal, replaceRegex);
-                            var profile = ReplaceCommand.GetProfile(replaceVal, replaceRegex);
+                            var nodeId = ReplaceCommand.GetNodeId(replaceVal);
+                            var profile = ReplaceCommand.GetProfile(replaceVal);
                             currentCommand = new ReplaceCommand(Program.controller, nodeId, Program.configList, profile);
                             break;
                         }
-                    case var simulateVal when simulateRegex.IsMatch(simulateVal):
+                    case var simulateVal when SimulateHelper.MatchesSimulate(simulateVal):
                         {
-                            var helper = new SimulateHelper(simulateRegex, simulateVal, Program.controller);
+                            var helper = new SimulateHelper(simulateVal, Program.controller);
                             helper.CreateCommand();
 
                             if (helper.Command != null)
@@ -440,9 +433,9 @@ namespace hyper
                             }
                             break;
                         }
-                    case var simulateVal when simulateOnOffRegex.IsMatch(simulateVal):
+                    case var simulateVal when SimulateHelper.MatchesSimulateOnOff(simulateVal):
                         {
-                            var helper = new SimulateHelper(simulateOnOffRegex, simulateVal, Program.controller);
+                            var helper = new SimulateHelper(simulateVal, Program.controller);
                             simulationMode = helper.GetSimulationMode();
                             listenComand.SimulationMode = simulationMode;
                             Common.logger.Info($"Simulate Mode {simulationMode}");
