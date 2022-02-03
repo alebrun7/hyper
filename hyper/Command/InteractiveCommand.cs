@@ -100,7 +100,6 @@ namespace hyper
 
             var batteryRegex = new Regex(@$"^battery\s*({oneTo255Regex})");
             var pingRegex = new Regex(@$"^ping\s*({oneTo255Regex})");
-            var configRegex = new Regex(@$"^config\s*({oneTo255Regex})\s*(!)?");
             var wakeUpRegex = new Regex(@$"^wakeup\s*({oneTo255Regex})\s*([0-9]+)?");
             var wakeUpCapRegex = new Regex(@$"^wakeupcap\s*({oneTo255Regex})");
             var basicRegex = new Regex(@$"^(basic|binary)\s*({oneTo255Regex})\s*(false|true)");
@@ -401,12 +400,12 @@ namespace hyper
                             blockExit = false;
                             break;
                         }
-                    case var configVal when configRegex.IsMatch(configVal):
+                    case var configVal when ConfigCommand.IsMatch(configVal):
                         {
-                            var val = configRegex.Match(configVal).Groups[1].Value;
-                            var nodeId = byte.Parse(val);
+                            var nodeId = ConfigCommand.GetNodeId(configVal);
+                            bool retry = ConfigCommand.IsRetry(configVal);
 
-                            currentCommand = new ConfigCommand(Program.controller, nodeId, Program.configList, configRegex.Match(configVal).Groups[2].Value == "!");
+                            currentCommand = new ConfigCommand(Program.controller, nodeId, Program.configList, retry);
                             break;
                         }
                     case var cmd when wakeUpRegex.IsMatch(cmd):
