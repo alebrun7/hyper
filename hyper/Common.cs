@@ -156,7 +156,8 @@ namespace hyper
             return true;
         }
 
-        public static ConfigItem GetConfigurationForDevice(Controller controller, byte nodeId, List<ConfigItem> configList, ref bool abort)
+        public static ConfigItem GetConfigurationForDevice(Controller controller, byte nodeId, List<ConfigItem> configList,
+            string profile, ref bool abort)
         {
             var retryCount = 3;
             var gotDeviceIds = GetManufactor(controller, nodeId, out int manufacturerId, out int productTypeId, out int productId);
@@ -173,18 +174,28 @@ namespace hyper
             }
 
             var config = GetConfigurationForDevice(
-                configList, manufacturerId, productTypeId, productId);
+                configList, manufacturerId, productTypeId, productId, profile);
             return config;
         }
 
         public static ConfigItem GetConfigurationForDevice(List<ConfigItem> configList,
-            int manufacturerId, int productTypeId, int productId)
+            int manufacturerId, int productTypeId, int productId, string profile = null)
         {
-            var config = configList.Find(item =>
-                item.manufacturerId == manufacturerId
-                && item.productTypeId == productTypeId
-                && (item.productId == productId || item.productId == 0)
-            );
+            var foundList = configList.FindAll(item =>
+                    item.manufacturerId == manufacturerId
+                    && item.productTypeId == productTypeId
+                    && (item.productId == productId || item.productId == 0)
+                );
+
+            ConfigItem config = null;
+            if (!string.IsNullOrEmpty(profile))
+            {
+                config = foundList.Find(item => profile.Equals(item.profile));
+            }
+            if (config == null && foundList.Count > 0)
+            {
+                config = foundList.Find(item => string.IsNullOrEmpty(item.profile));
+            }
             return config;
         }
 

@@ -2,6 +2,7 @@
 using hyper.commands;
 using hyper.config;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Threading;
 using ZWave.BasicApplication.Devices;
 
@@ -11,6 +12,12 @@ namespace hyper
     {
         private readonly Controller controller;
         private readonly List<ConfigItem> configList;
+        private readonly string profile;
+
+        public static Regex GetRegex(string oneTo255Regex)
+        {
+            return new Regex(@$"^include\s*([a-zA-Z_]+)?");
+        }
 
         private bool abort = false;
 
@@ -18,10 +25,11 @@ namespace hyper
 
         private ICommand currentCommand = null;
 
-        public IncludeCommand(Controller controller, List<ConfigItem> configList)
+        public IncludeCommand(Controller controller, List<ConfigItem> configList, string profile)
         {
             this.controller = controller;
             this.configList = configList;
+            this.profile = profile;
         }
 
         public override bool Start()
@@ -54,8 +62,13 @@ namespace hyper
 
             Common.logger.Info("Inclusion done!");
 
-            currentCommand = new ConfigCommand(controller, nodeId, configList);
+            currentCommand = new ConfigCommand(controller, nodeId, configList, false, profile);
             return currentCommand.Start();
+        }
+
+        public static string GetProfile(string input, Regex regex)
+        {
+            return regex.Match(input).Groups[1].Value;
         }
 
         public override void Stop()

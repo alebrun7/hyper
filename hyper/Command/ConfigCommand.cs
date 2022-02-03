@@ -9,19 +9,20 @@ namespace hyper
     public class ConfigCommand : BaseCommand
     {
         private readonly Controller controller;
-
         private readonly List<ConfigItem> configList;
+        private readonly string profile;
 
         private bool abort = false;
 
         public bool Active { get; private set; } = false;
 
-        public ConfigCommand(Controller controller, byte nodeId, List<ConfigItem> configList, bool retry = false)
+        public ConfigCommand(Controller controller, byte nodeId, List<ConfigItem> configList, bool retry = false, string profile = "")
         {
             this.controller = controller;
             NodeId = nodeId;
             this.configList = configList;
             this.Retry = retry;
+            this.profile = profile;
         }
 
         public override bool Start()
@@ -35,7 +36,7 @@ namespace hyper
             string errorMsg = $"Configuration failed for node {NodeId}!";
 
             Common.logger.Info("Getting configuration for device...");
-            ConfigItem config = Common.GetConfigurationForDevice(controller, NodeId, configList, ref abort);
+            ConfigItem config = Common.GetConfigurationForDevice(controller, NodeId, configList, profile, ref abort);
             if (config == null)
             {
                 Common.logger.Info("could not find configuration!");
@@ -46,6 +47,14 @@ namespace hyper
             }
 
             Common.logger.Info("configuration found for {0}!", config.deviceName);
+            if (string.IsNullOrEmpty(config.profile))
+            {
+                Common.logger.Info("using default configuration profile");
+            }
+            else
+            {
+                Common.logger.Info($"using configuration profile {config.profile}");
+            }
             Common.logger.Info("Setting values.");
             if (Common.SetConfiguration(controller, NodeId, config, ref abort))
             {

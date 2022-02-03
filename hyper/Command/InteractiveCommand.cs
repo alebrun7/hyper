@@ -105,6 +105,7 @@ namespace hyper
             var configRegex = new Regex(@$"^config\s*({oneTo255Regex})\s*(!)?");
             var wakeUpRegex = new Regex(@$"^wakeup\s*({oneTo255Regex})\s*([0-9]+)?");
             var wakeUpCapRegex = new Regex(@$"^wakeupcap\s*({oneTo255Regex})");
+            var includeRegex = IncludeCommand.GetRegex(oneTo255Regex);
             var replaceRegex = new Regex(@$"^replace\s*({oneTo255Regex})");
             var basicRegex = new Regex(@$"^(basic|binary)\s*({oneTo255Regex})\s*(false|true)");
             var retryRegex = new Regex(@$"^(basic|binary)retry\s*({oneTo255Regex})\s*(false|true)\s*(\d+)?\s*(\d+)?");
@@ -192,10 +193,10 @@ namespace hyper
                             blockExit = false;
                             break;
                         }
-
-                    case "include":
+                    case var includeVal when includeRegex.IsMatch(includeVal):
                         {
-                            currentCommand = new IncludeCommand(Program.controller, Program.configList);
+                            string profile = IncludeCommand.GetProfile(includeVal, includeRegex);
+                            currentCommand = new IncludeCommand(Program.controller, Program.configList, profile);
                             break;
                         }
                     case "included":
