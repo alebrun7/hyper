@@ -16,7 +16,12 @@ namespace hyper
 
         public static Regex GetRegex(string oneTo255Regex)
         {
-            return new Regex(@$"^include\s*([a-zA-Z_]+)?");
+            return new Regex(@$"^include\b\s*([a-zA-Z_]+)?");
+        }
+
+        public static string GetProfile(string input, Regex regex)
+        {
+            return regex.Match(input).Groups[1].Value;
         }
 
         private bool abort = false;
@@ -64,11 +69,6 @@ namespace hyper
 
             currentCommand = new ConfigCommand(controller, nodeId, configList, false, profile);
             return currentCommand.Start();
-        }
-
-        public static string GetProfile(string input, Regex regex)
-        {
-            return regex.Match(input).Groups[1].Value;
         }
 
         public override void Stop()

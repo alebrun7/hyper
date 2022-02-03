@@ -106,7 +106,7 @@ namespace hyper
             var wakeUpRegex = new Regex(@$"^wakeup\s*({oneTo255Regex})\s*([0-9]+)?");
             var wakeUpCapRegex = new Regex(@$"^wakeupcap\s*({oneTo255Regex})");
             var includeRegex = IncludeCommand.GetRegex(oneTo255Regex);
-            var replaceRegex = new Regex(@$"^replace\s*({oneTo255Regex})");
+            var replaceRegex = ReplaceCommand.GetRegex(oneTo255Regex);
             var basicRegex = new Regex(@$"^(basic|binary)\s*({oneTo255Regex})\s*(false|true)");
             var retryRegex = new Regex(@$"^(basic|binary)retry\s*({oneTo255Regex})\s*(false|true)\s*(\d+)?\s*(\d+)?");
             var basicGetRegex = new Regex(@$"^(basic|binary)\s*({oneTo255Regex})");
@@ -424,9 +424,9 @@ namespace hyper
                         break;
                     case var replaceVal when replaceRegex.IsMatch(replaceVal):
                         {
-                            var val = replaceRegex.Match(replaceVal).Groups[1].Value;
-                            var nodeId = byte.Parse(val);
-                            currentCommand = new ReplaceCommand(Program.controller, nodeId, Program.configList);
+                            var nodeId = ReplaceCommand.GetNodeId(replaceVal, replaceRegex);
+                            var profile = ReplaceCommand.GetProfile(replaceVal, replaceRegex);
+                            currentCommand = new ReplaceCommand(Program.controller, nodeId, Program.configList, profile);
                             break;
                         }
                     case var simulateVal when simulateRegex.IsMatch(simulateVal):

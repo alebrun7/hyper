@@ -19,6 +19,16 @@ namespace hyper.Tests.Command
         }
 
         [TestMethod]
+        public void GetRegex_DoNotMachIncluded()
+        {
+            Regex regex = IncludeCommand.GetRegex(InteractiveCommand.OneTo255Regex);
+
+            bool isMatch = regex.IsMatch("included");
+
+            Assert.IsFalse(isMatch);
+        }
+
+        [TestMethod]
         public void GetRegex_WithProfile()
         {
             Regex regex = IncludeCommand.GetRegex(InteractiveCommand.OneTo255Regex);

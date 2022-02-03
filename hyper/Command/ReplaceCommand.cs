@@ -2,6 +2,7 @@
 using hyper.commands;
 using hyper.config;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Threading;
 using ZWave.BasicApplication.Devices;
 
@@ -12,18 +13,36 @@ namespace hyper
         private readonly Controller controller;
         private readonly byte nodeId;
         private readonly List<ConfigItem> configList;
-
+        private readonly string profile;
         private ICommand currentCommand = null;
 
         public bool Active { get; private set; } = false;
 
         private bool abort = false;
 
-        public ReplaceCommand(Controller controller, byte nodeId, List<ConfigItem> configList)
+
+        public static Regex GetRegex(string oneTo255Regex)
+        {
+            return new Regex(@$"^replace\b\s*({oneTo255Regex})\s*([a-zA-Z_]+)?");
+        }
+
+        public static string GetProfile(string input, Regex regex)
+        {
+            return regex.Match(input).Groups[2].Value;
+        }
+
+        public static byte GetNodeId(string command, Regex regex)
+        {
+            var val = regex.Match(command).Groups[1].Value;
+            return byte.Parse(val);
+        }
+
+        public ReplaceCommand(Controller controller, byte nodeId, List<ConfigItem> configList, string profile)
         {
             this.controller = controller;
             this.nodeId = nodeId;
             this.configList = configList;
+            this.profile = profile;
         }
 
         public override bool Start()
@@ -78,43 +97,17 @@ namespace hyper
 
             Common.logger.Info("Node sucessfully replaced!");
 
-            //     Common.logger.Info("Write new Configuration...");
-            //     bool configurationSet = SetConfiguration();
-
-            //   Common.logger.Info("Get Association");
-            //  GetAssociation();
-            //GetConfig();
-
-            //   GetManufactor();
-            //GetWakeUp();
-            //Console.ReadLine();
             Common.logger.Info("Replacement done!");
 
-            currentCommand = new ConfigCommand(controller, nodeId, configList);
+            currentCommand = new ConfigCommand(controller, nodeId, configList, false, profile);
             return currentCommand.Start();
         }
 
-        public override void Stop()
+         public override void Stop()
         {
             Common.logger.Info("aborting... Please wait.");
             abort = true;
             currentCommand?.Stop();
         }
-
-        //private void GetWakeUp()
-        //{
-        //    var cmd = new COMMAND_CLASS_WAKE_UP.WAKE_UP_INTERVAL_GET();
-        //    var result = controller.RequestData(nodeId, cmd, Common.txOptions, new COMMAND_CLASS_WAKE_UP.WAKE_UP_INTERVAL_REPORT(), 20000);
-        //    if (result)
-        //    {
-        //        var rpt = (COMMAND_CLASS_WAKE_UP.WAKE_UP_INTERVAL_REPORT)result.Command;
-        //        Common.logger.Info("wake up interval: " + Tools.GetInt32(rpt.seconds));
-
-        //    }
-        //    else
-        //    {
-        //        Common.logger.Info("Could Not get wake up!!");
-        //    }
-        //}
     }
 }
