@@ -109,7 +109,6 @@ namespace hyper
             var forceRemoveRegex = new Regex(@$"^remove\s*({oneTo255Regex})");
             var debugRegex = new Regex(@"^debug\s*(false|true)");
             var lastEventsRegex = new Regex(@$"^show\s*({zeroTo255Regex})\s*({zeroTo255Regex})?\s*([a-zA-Z_]+)?");
-            var queueRegex = new Regex(@$"^queue\s*({oneTo255Regex}+(?:\s*,\s*{oneTo255Regex}+)*)\s*(config)");
             var multiRegex = new Regex(@$"^multi\s*({oneTo255Regex})\s*({zeroTo255Regex})\s*(false|true)");
 
             Active = true;
@@ -266,20 +265,15 @@ namespace hyper
                             Common.SetMulti(Program.controller, nodeId, endpoint, value);
                             break;
                         }
-                    case var queueVal when queueRegex.IsMatch(queueVal):
+                    case var queueVal when QueueCommand.IsMatch(queueVal):
                         {
-                            var match = queueRegex.Match(queueVal);
-                            var nodeIds = match.Groups[1].Value.Split(",");
-                            var command = match.Groups[2].Value;
-
-                            foreach (var nodeIdStr in nodeIds)
+                            var nodeIds = QueueCommand.GetNodeIds(queueVal);
+                            var command = QueueCommand.GetCommand(queueVal);
+                            foreach (var nodeId in nodeIds)
                             {
-                                var nodeId = byte.Parse(nodeIdStr.Trim());
                                 Common.logger.Info($"node: {nodeId} - command: {command}");
                                 queueCommand.AddToMap(nodeId, command);
                             }
-                            //var nodeId = byte.Parse(match.Groups[1].Value);
-
                             break;
                         }
                     case var eventsVal when lastEventsRegex.IsMatch(eventsVal):

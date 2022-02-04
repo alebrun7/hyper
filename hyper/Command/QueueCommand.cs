@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Utils;
 using ZWave;
 using ZWave.BasicApplication.Devices;
@@ -20,11 +21,35 @@ namespace hyper
 {
     public class QueueCommand : BaseCommand
     {
+        private static Regex regex = new Regex(@$"^queue\s*({OneTo255Regex}+(?:\s*,\s*{OneTo255Regex}+)*)\s*(config)");
+
         private readonly Controller controller;
         private List<ConfigItem> configList;
         private InputManager inputManager;
         private EventDAO eventDao = new EventDAO();
         private readonly object lockObject = new object();
+
+        public static bool IsMatch(string cmd)
+        {
+            return regex.IsMatch(cmd);
+        }
+
+        public static byte[] GetNodeIds(string command)
+        {
+            var match = regex.Match(command);
+            var nodeIdsAsStr = match.Groups[1].Value.Split(",");
+            var ret = new byte[nodeIdsAsStr.Length];
+            for (int i = 0; i < nodeIdsAsStr.Length; i++)
+            {
+                ret[i] = byte.Parse(nodeIdsAsStr[i].Trim());
+            }
+            return ret;
+        }
+
+        public static string GetCommand(string queueVal)
+        {
+            return regex.Match(queueVal).Groups[2].Value;
+        }
 
         public QueueCommand(Controller controller, List<ConfigItem> configList, InputManager inputManager)
         {
