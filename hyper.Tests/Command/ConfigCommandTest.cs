@@ -40,5 +40,33 @@ namespace hyper.Tests.Command
             bool retry = ConfigCommand.IsRetry("config 2");
             Assert.IsFalse(retry);
         }
+
+        [TestMethod]
+        public void GetProfile_ProfileSet_ReturnsProfile()
+        {
+            const string ExpectedProfile = "battery";
+            const string Command = "config 2 " + ExpectedProfile;
+
+            bool isMatch = ConfigCommand.IsMatch(Command);
+            string profile = ConfigCommand.GetProfile(Command);
+
+            Assert.IsTrue(isMatch);
+            Assert.AreEqual(ExpectedProfile, profile);
+        }
+
+        [TestMethod]
+        public void GetProfileAndRetry_ProfileAndRetrySet_ReturnsProfile()
+        {
+            const string ExpectedProfile = "battery";
+            const string Command = "config 2 " + ExpectedProfile + "!";
+
+            bool isMatch = ConfigCommand.IsMatch(Command);
+            string profile = ConfigCommand.GetProfile(Command);
+            bool retry = ConfigCommand.IsRetry(Command);
+
+            Assert.IsTrue(isMatch);
+            Assert.AreEqual(ExpectedProfile, profile);
+            Assert.IsTrue(retry);
+        }
     }
 }

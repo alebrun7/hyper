@@ -404,8 +404,9 @@ namespace hyper
                         {
                             var nodeId = ConfigCommand.GetNodeId(configVal);
                             bool retry = ConfigCommand.IsRetry(configVal);
+                            string profile = ConfigCommand.GetProfile(configVal);
 
-                            currentCommand = new ConfigCommand(Program.controller, nodeId, Program.configList, retry);
+                            currentCommand = new ConfigCommand(Program.controller, nodeId, Program.configList, retry, profile);
                             break;
                         }
                     case var cmd when wakeUpRegex.IsMatch(cmd):

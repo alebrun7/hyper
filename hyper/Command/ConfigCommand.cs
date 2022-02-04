@@ -10,7 +10,7 @@ namespace hyper
 {
     public class ConfigCommand : BaseCommand
     {
-        private static Regex regex = new Regex(@$"^config\s*({OneTo255Regex})\s*(!)?");
+        private static Regex regex = new Regex(@$"^config\s*({OneTo255Regex})\s*([a-zA-Z_]+)?\s*(!)?");
 
         private readonly Controller controller;
         private readonly List<ConfigItem> configList;
@@ -33,7 +33,12 @@ namespace hyper
 
         public static bool IsRetry(string command)
         {
-            return regex.Match(command).Groups[2].Value == "!";
+            return regex.Match(command).Groups[3].Value == "!";
+        }
+
+        public static string GetProfile(string command)
+        {
+            return regex.Match(command).Groups[2].Value;
         }
 
         public ConfigCommand(Controller controller, byte nodeId, List<ConfigItem> configList, bool retry = false, string profile = "")
