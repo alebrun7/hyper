@@ -8,6 +8,8 @@ namespace hyper.Tests.Command
     [TestClass]
     public class QueueCommandTest
     {
+        private const string Profile = "bw_battery";
+
         [TestMethod]
         public void IsMatch_WithoutProfile()
         {
@@ -37,6 +39,20 @@ namespace hyper.Tests.Command
         {
             var actual = QueueCommand.GetCommand("queue 2 config");
             Assert.AreEqual("config", actual);
+        }
+
+        [TestMethod]
+        public void GetParameter_ProfileSet_ReturnsProfile()
+        {
+            var actual = QueueCommand.GetParameter("queue 2 config " + Profile);
+            Assert.AreEqual(Profile, actual);
+        }
+
+        [TestMethod]
+        public void GetParameter_ProfileNotSet_ReturnsEmpty()
+        {
+            var actual = QueueCommand.GetParameter("queue 2 config");
+            Assert.AreEqual("", actual);
         }
     }
 }

@@ -269,10 +269,12 @@ namespace hyper
                         {
                             var nodeIds = QueueCommand.GetNodeIds(queueVal);
                             var command = QueueCommand.GetCommand(queueVal);
+                            var param = QueueCommand.GetParameter(queueVal);
                             foreach (var nodeId in nodeIds)
                             {
-                                Common.logger.Info($"node: {nodeId} - command: {command}");
-                                queueCommand.AddToMap(nodeId, command);
+                                var fullCommand = String.Format($"{command} {nodeId} {param}!");
+                                Common.logger.Info($"node: {nodeId} - command: {fullCommand}");
+                                queueCommand.AddToMap(nodeId, fullCommand);
                             }
                             break;
                         }

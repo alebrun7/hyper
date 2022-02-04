@@ -21,7 +21,7 @@ namespace hyper
 {
     public class QueueCommand : BaseCommand
     {
-        private static Regex regex = new Regex(@$"^queue\s*({OneTo255Regex}+(?:\s*,\s*{OneTo255Regex}+)*)\s*(config)");
+        private static Regex regex = new Regex(@$"^queue\s*({OneTo255Regex}+(?:\s*,\s*{OneTo255Regex}+)*)\s*(config)\s*([a-zA-Z_]+)?");
 
         private readonly Controller controller;
         private List<ConfigItem> configList;
@@ -49,6 +49,11 @@ namespace hyper
         public static string GetCommand(string queueVal)
         {
             return regex.Match(queueVal).Groups[2].Value;
+        }
+
+        public static string GetParameter(string queueVal)
+        {
+            return regex.Match(queueVal).Groups[3].Value;
         }
 
         public QueueCommand(Controller controller, List<ConfigItem> configList, InputManager inputManager)
@@ -168,10 +173,6 @@ namespace hyper
                             }
 
                             var command = commands.First();
-                            if (command == "config")
-                            {
-                                command = command + " " + x.SrcNodeId + "!";
-                            }
                             Common.logger.Warn($"injecting {command}");
                             inputManager.InjectCommand(command);
                             commands.Remove(commands.First());
@@ -203,10 +204,6 @@ namespace hyper
                 }
 
                 var command = commands.First();
-                if (command == "config")
-                {
-                    command = command + " " + r.NodeId + "!";
-                }
                 Common.logger.Warn($"injecting {command}");
                 inputManager.InjectCommand(command);
                 commands.Remove(commands.First());
