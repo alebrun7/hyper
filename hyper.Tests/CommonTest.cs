@@ -15,6 +15,7 @@ namespace hyper.Tests
         private const int TestProductTypeId = 3;
         private const int TestProductId = 139;
         private const int TestProdutId2 = 116;
+        private const string DefaultProfile = "default";
 
         [TestMethod]
         public void GetConfigurationForDevice_TypeNotUnique_ReturnsCorrectEntry()
@@ -61,6 +62,19 @@ namespace hyper.Tests
         {
             var configList = new List<ConfigItem>();
             AddDevice(configList, TestDeviceName, TestManufacturerId, TestProductTypeId, TestProductId, TestProfile);
+            AddDevice(configList, TestDeviceName, TestManufacturerId, TestProductTypeId, TestProductId, DefaultProfile);
+
+            var config = Common.GetConfigurationForDevice(configList, TestManufacturerId, TestProductTypeId, TestProductId);
+
+            Assert.IsNotNull(config);
+            Assert.AreEqual(DefaultProfile, config.profile);
+        }
+
+        [TestMethod]
+        public void GetConfigurationForDevice_WithoutProfileNullProfileExists_ReturnsNullProfile()
+        {
+            var configList = new List<ConfigItem>();
+            AddDevice(configList, TestDeviceName, TestManufacturerId, TestProductTypeId, TestProductId, TestProfile);
             AddDevice(configList, TestDeviceName, TestManufacturerId, TestProductTypeId, TestProductId);
 
             var config = Common.GetConfigurationForDevice(configList, TestManufacturerId, TestProductTypeId, TestProductId);
@@ -87,20 +101,38 @@ namespace hyper.Tests
         {
             var configList = new List<ConfigItem>();
             AddDevice(configList, TestDeviceName, TestManufacturerId, TestProductTypeId, TestProductId, TestProfile);
-            AddDevice(configList, TestDeviceName, TestManufacturerId, TestProductTypeId, TestProductId);
+            AddDevice(configList, TestDeviceName, TestManufacturerId, TestProductTypeId, TestProductId, DefaultProfile);
 
             var config = Common.GetConfigurationForDevice(
                 configList, TestManufacturerId, TestProductTypeId, TestProductId, "missingProfile");
 
             Assert.IsNotNull(config);
-            Assert.IsNull(config.profile);
+            Assert.AreEqual(DefaultProfile, config.profile);
         }
 
         [TestMethod]
-        public void ParseConfigTest()
+        public void ParseConfig_CheckAllEntries_ProfileNotEmpty()
         {
             var configList = Common.ParseConfig("config.yaml");
             Assert.AreNotEqual(0, configList.Count);
+            var configWithEmptyProfile = configList.Find(config => string.IsNullOrEmpty(config.profile));
+            configList.ForEach(config =>
+                Assert.IsFalse(string.IsNullOrEmpty(config.profile),"Profile is missing for device {0}", config.deviceName));
+        }
+
+        [TestMethod]
+        public void ParseConfig_EachDeviceHasDefaultProfile()
+        {
+            var configList = Common.ParseConfig("config.yaml");
+            configList.ForEach(config =>
+            {
+                if (!DefaultProfile.Equals(config.profile))
+                {
+                    var defaultConfig = Common.GetConfigurationForDevice(configList, config.manufacturerId, config.productTypeId, config.productId);
+                    Assert.IsNotNull(defaultConfig, "no default profile found for device {0}", config.deviceName);
+                    Assert.AreEqual(DefaultProfile, defaultConfig.profile, "Wrong default profile name for device {0}", config.deviceName);
+                }
+            });
         }
 
         void AddDevice(List<ConfigItem> configList, string name, int manufacturerId, int productTypeId, int productId, string profile = null)

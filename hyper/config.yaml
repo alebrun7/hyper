@@ -4,10 +4,11 @@
 -   deviceName: FGDW002 - Fibaro Door Window Sensor 2
     manufacturerId: 271 # 0x010F
     productTypeId: 1794 # 0702
+    profile: default # will be used if no profile is specified in the command
     groups:
     # send alarm
         1: 1
-    config: 
+    config:
         # bitmask:
         # 2_1 Visual LED indications - Open/close = 1; 
         # 2_2 Visual LED indications - wake up = 0;
@@ -20,11 +21,34 @@
         51_2: 0
     wakeup: 64800 # 18 hours
 
+# FGDW002 - Fibaro Door Window Sensor 2 - with LED off
+# https://www.cd-jackson.com/index.php/zwave/zwave-device-database/zwave-device-list/devicesummary/604
+# https://www.opensmarthouse.org/zwavedatabase/604
+-   deviceName: FGDW002 - Fibaro Door Window Sensor 2
+    manufacturerId: 271 # 0x010F
+    productTypeId: 1794 # 0702
+    profile: mk_led_off # LED will not blink
+    groups:
+    # send alarm
+        1: 1
+    config:
+        # bitmask:
+        # 2_1 Visual LED indications - Open/close = 0;
+        # 2_2 Visual LED indications - wake up = 0;
+        # 2_4 Visual LED indications - tampering = 0;
+        2_1: 0
+        # Interval of temperature measurements
+        50_2: 0
+        # Temperature reports threshold
+        51_2: 0
+    wakeup: 64800 # 18 hours
+
 # Fibargroup FGK101 Door Opening Sensor Version > 3.2
 # https://www.opensmarthouse.org/zwavedatabase/381
 -   deviceName: FGK101 - Fibaro Door Window Sensor 1.5
     manufacturerId: 271 # 0x010F
     productTypeId: 1793 # 0x0701
+    profile: default # will be used if no profile is specified in the command
     groups:
     # send alarm
         1: 1
@@ -47,6 +71,7 @@
 -   deviceName: FGK101 - Fibaro Door Window Sensor 1
     manufacturerId: 271 # 0x010F
     productTypeId: 1792 # 0x700
+    profile: default # will be used if no profile is specified in the command
     groups:
     # send basic
         1: 1
@@ -61,13 +86,14 @@
         2_1: 1
     wakeup: 64800 # 18 hours
 
-# ZW100 Multisensor 6 1.12
+# ZW100 Multisensor 6 1.12 USB powered, default
 # https://www.cd-jackson.com/index.php/zwave/zwave-device-database/zwave-device-list/devicesummary/778
 # https://www.opensmarthouse.org/zwavedatabase/778
 -   deviceName: ZW100 Multisensor 6
     manufacturerId: 134 # 0x0086
     productTypeId: 2
     productId: 100
+    profile: default # will be used if no profile is specified in the command (here for USB power supply)
     groups:
         1: 1
     config:
@@ -93,11 +119,11 @@
 # ZW100 Multisensor 6 1.12 battery profile
 # https://www.cd-jackson.com/index.php/zwave/zwave-device-database/zwave-device-list/devicesummary/778
 # https://www.opensmarthouse.org/zwavedatabase/778
--   deviceName: ZW100 Multisensor 6 battery powered
+-   deviceName: ZW100 Multisensor 6
     manufacturerId: 134 # 0x0086
     productTypeId: 2
     productId: 100
-    profile: battery
+    profile: bw_battery
     groups:
         1: 1
     config:
@@ -125,6 +151,7 @@
 -   deviceName: FGWP102 Metered Wall Plug Switch
     manufacturerId: 271 # (0x10F)
     productTypeId: 1538 # (0x602)
+    profile: default # will be used if no profile is specified in the command
     groups:
         1: 1
         #2: 1
@@ -143,6 +170,7 @@
 -   deviceName: FGWP101 Metered Wall Plug Switch
     manufacturerId: 271 # (0x10F)
     productTypeId: 1536 # (0x600)
+    profile: default # will be used if no profile is specified in the command
     groups:
         # 1: is assigned to Plugs status - On / Off. Allows for sending control command to associated devices whenever the Plug is turned On or Off.
         #1: 1
@@ -162,6 +190,7 @@
 -   deviceName: FGBS001 Universal Binary Sensor
     manufacturerId: 271
     productTypeId: 1281
+    profile: default # will be used if no profile is specified in the command
     groups:
         1: 1
         2: 1
@@ -173,6 +202,7 @@
 -   deviceName: FGBS222 Smart Implant
     manufacturerId: 271
     productTypeId: 1282
+    profile: default # will be used if no profile is specified in the command
     groups:
         1: 1
         2: 1
@@ -188,6 +218,7 @@
     manufacturerId: 134
     productTypeId: 3
     productId: 139 #(0x008B)
+    profile: default # will be used if no profile is specified in the command
     groups:
         1: 1
         3: 1
@@ -202,6 +233,7 @@
     manufacturerId: 134
     productTypeId: 3
     productId: 116 #(0x74)
+    profile: default # will be used if no profile is specified in the command
     groups:
         1: 1
         3: 1
@@ -216,6 +248,7 @@
     manufacturerId: 134 # 0x0086
     productTypeId: 3 # 0x0003
     productId: 96 # 0x0060
+    profile: default # will be used if no profile is specified in the command
     groups:
         1: 1
     config:
@@ -241,6 +274,7 @@
 -   deviceName: TPS412 Touch Panel Switch 2 Channel
     manufacturerId: 351
     productTypeId: 16673
+    profile: default # will be used if no profile is specified in the command
     groups:
         1: 1
         2: 1
@@ -249,6 +283,7 @@
 -   deviceName: BeNext Panic Watch
     manufacturerId: 138
     productTypeId: 21
+    profile: default # will be used if no profile is specified in the command
     groups:
         1: 1
     config:
@@ -257,6 +292,7 @@
 -   deviceName: Fibaro Relais FGS-212
     manufacturerId: 271
     productTypeId: 1026
+    profile: default # will be used if no profile is specified in the command
     groups:
         3: 1
 
@@ -266,6 +302,7 @@
 -   deviceName: Fibargroup FGSD002 Smoke Detector
     manufacturerId: 271 #0x010F
     productTypeId: 3074 #0x0C02
+    profile: default # will be used if no profile is specified in the command
     config:
         20_2: 0 # Temperature report interval - 0: reports inactive - default: 1 = 10 seconds
     wakeup: 65535 # max value, a little more than 18 hours. 0 would disable wakeup completely - default was 6 hours
@@ -276,6 +313,7 @@
 -   deviceName: Fibargroup FGPB101 The Button
     manufacturerId: 271 #0x010F
     productTypeId: 3841 #0x0F01
+    profile: default # will be used if no profile is specified in the command
     groups:
         1: 1 # “Lifeline” reports the device status and allows for assigning single device only (main controller by default).
         2: 1 # “On/Off” is assigned to clicking the button
@@ -295,3 +333,4 @@
     manufacturerId: 134 #(0x86)
     productTypeId: 4 # (0x4)
     productId: 117 # (0x0075)
+    profile: default # will be used if no profile is specified in the command

@@ -181,6 +181,11 @@ namespace hyper
         public static ConfigItem GetConfigurationForDevice(List<ConfigItem> configList,
             int manufacturerId, int productTypeId, int productId, string profile = null)
         {
+            const string DefaultProfile = "default";
+            if (string.IsNullOrEmpty(profile))
+            {
+                profile = DefaultProfile;
+            }
             var foundList = configList.FindAll(item =>
                     item.manufacturerId == manufacturerId
                     && item.productTypeId == productTypeId
@@ -188,13 +193,10 @@ namespace hyper
                 );
 
             ConfigItem config = null;
-            if (!string.IsNullOrEmpty(profile))
-            {
-                config = foundList.Find(item => profile.Equals(item.profile));
-            }
+            config = foundList.Find(item => profile.Equals(item.profile));
             if (config == null && foundList.Count > 0)
             {
-                config = foundList.Find(item => string.IsNullOrEmpty(item.profile));
+                config = foundList.Find(item => DefaultProfile.Equals(item.profile) || string.IsNullOrEmpty(item.profile));
             }
             return config;
         }
