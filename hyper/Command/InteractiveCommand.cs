@@ -164,6 +164,9 @@ namespace hyper
                     case "help":
                         ShowHelp();
                         break;
+                    case "profiles":
+                        ShowProfiles();
+                        break;
                     case "test":
                         {
                             foreach (var n in Program.controller.IncludedNodes)
@@ -469,6 +472,12 @@ namespace hyper
             listenComand.Stop();
             Common.logger.Info("goodby master...");
             return true;
+        }
+
+        private static void ShowProfiles()
+        {
+            String profiles = Common.GetProfiles(Program.configList);
+            Common.logger.Info($"Available profiles: {profiles}");
         }
 
         private void ShowHelp()

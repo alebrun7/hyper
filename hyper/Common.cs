@@ -225,6 +225,14 @@ namespace hyper
             }
         }
 
+        public static string GetProfiles(List<ConfigItem> configList)
+        {
+            ICollection<String> profiles = new SortedSet<String>();
+            configList.FindAll(c => !string.IsNullOrEmpty(c.profile))
+                .ForEach(c => profiles.Add(c.profile));
+            return String.Join(" ", profiles);
+        }
+
         public static bool SetConfiguration(Controller controller, byte nodeId, ConfigItem config, ref bool abort)
         {
             int retryCount = 3;

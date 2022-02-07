@@ -111,6 +111,19 @@ namespace hyper.Tests
         }
 
         [TestMethod]
+        public void GetProfilesTest()
+        {
+            var configList = new List<ConfigItem>();
+            AddDevice(configList, TestDeviceName, TestManufacturerId, TestProductTypeId, TestProductId, TestProfile);
+            AddDevice(configList, TestDeviceName, TestManufacturerId, TestProductTypeId, TestProductId, DefaultProfile);
+
+            var actual = Common.GetProfiles(configList);
+
+            var expected = TestProfile + " " + DefaultProfile;
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
         public void ParseConfig_CheckAllEntries_ProfileNotEmpty()
         {
             var configList = Common.ParseConfig("config.yaml");
