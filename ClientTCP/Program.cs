@@ -23,13 +23,13 @@ namespace ClientTCP
                     "If node is reachable, we cannot replace it"
                 };
             }
-            else switch (command)
+            else if (command.StartsWith("include"))
             {
-                case "include":
-                    return new string[] { "Starting inclusion, please wake up device..." };
-
-                default:
-                    return new string[] { "destiny" };
+                return new string[] { "Starting inclusion, please wake up device..." };
+            }
+            else
+            {
+                return new string[] { "destiny" };
             }
         }
 
