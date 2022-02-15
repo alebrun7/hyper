@@ -200,7 +200,14 @@ namespace hyper
                         }
                     case "included":
                         {
-                            Common.logger.Info("included nodes: " + string.Join(", ", Program.controller.IncludedNodes));
+                            if (Program.controller != null)
+                            {
+                                Common.logger.Info("included nodes: " + string.Join(", ", Program.controller.IncludedNodes));
+                            }
+                            else
+                            {
+                                Common.logger.Warn("included nodes not available in simulation mode");
+                            }
                             break;
                         }
                     case "exclude":
