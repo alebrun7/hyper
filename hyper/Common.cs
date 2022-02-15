@@ -771,26 +771,46 @@ namespace hyper
             var replacedNode = controller.ReplaceFailedNode(nodeId, null, Modes.NodeOptionHighPower | Modes.NodeOptionNetworkWide, 20000);
             replacedNode.WaitCompletedSignal();
             var result = (InclusionResult)replacedNode.Result;
-            return result.AddRemoveNode.AddRemoveNodeStatus == ZWave.BasicApplication.Enums.AddRemoveNodeStatuses.Replaced;
+            var replaced = result.AddRemoveNode.AddRemoveNodeStatus == ZWave.BasicApplication.Enums.AddRemoveNodeStatuses.Replaced;
+            if (replaced)
+            {
+                AddToIncludedNodes(controller, nodeId);
+            }
+            return replaced;
         }
 
         public static bool IncludeNode(Controller controller, out byte nodeId)
         {
             var includeNode = controller.IncludeNode(Modes.NodeOptionHighPower | Modes.NodeOptionNetworkWide, 20000);
             nodeId = includeNode.AddRemoveNode.Id;
-            return includeNode.AddRemoveNode.AddRemoveNodeStatus == ZWave.BasicApplication.Enums.AddRemoveNodeStatuses.Added;
-            //if (nodeId == 0)
-            //{
-            //    return false;
-            //}
-            //return true;
+            var nodeIncluded = includeNode.AddRemoveNode.AddRemoveNodeStatus == ZWave.BasicApplication.Enums.AddRemoveNodeStatuses.Added;
+            if (nodeIncluded)
+            {
+                AddToIncludedNodes(controller, nodeId);
+            }
+            return nodeIncluded;
         }
 
         public static bool ExcludeNode(Controller controller, out byte nodeId)
         {
             var excludeNode = controller.ExcludeNode(Modes.NodeOptionHighPower | Modes.NodeOptionNetworkWide, 20000);
             nodeId = excludeNode.AddRemoveNode.Id;
+            RemoveFromIncludedNodes(controller, nodeId);
             return true;
+        }
+
+        private static void AddToIncludedNodes(Controller controller, byte nodeId)
+        {
+            var list = new SortedSet<byte>(controller.IncludedNodes);
+            list.Add(nodeId);
+            controller.IncludedNodes = list.ToArray();
+        }
+
+        private static void RemoveFromIncludedNodes(Controller controller, byte nodeId)
+        {
+            var list = new List<byte>(controller.IncludedNodes);
+            list.Remove(nodeId);
+            controller.IncludedNodes = list.ToArray();
         }
 
         public static bool MarkNodeFailed(Controller controller, byte nodeId)
