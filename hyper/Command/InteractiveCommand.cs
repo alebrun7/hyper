@@ -111,6 +111,7 @@ namespace hyper
             var debugRegex = new Regex(@"^debug\s*(false|true)");
             var lastEventsRegex = new Regex(@$"^show\s*({zeroTo255Regex})\s*({zeroTo255Regex})?\s*([a-zA-Z_]+)?");
             var multiRegex = new Regex(@$"^multi\s*({oneTo255Regex})\s*({zeroTo255Regex})\s*(false|true)");
+            var rtr_setpointRegex = new Regex(@$"^rtr_setpoint\s*({oneTo255Regex})\s+(\d+\.?\d*)");
 
             Active = true;
             bool oneShot = args.Length > 0;
@@ -452,6 +453,9 @@ namespace hyper
                             Common.logger.Info($"Simulate Mode {simulationMode}");
                             break;
                         }
+                    case var setpointVal when rtr_setpointRegex.IsMatch(setpointVal):
+                        ThermostatSetpoint(rtr_setpointRegex, setpointVal);
+                        break;
                     default:
                         Common.logger.Warn("unknown command - " + HelpHint);
                         break;
@@ -510,6 +514,7 @@ namespace hyper
             help.AppendLine("  replace nodeId [profile [param]]: checks existing nodeId, then replaces the device, optionally using a device profile");
             help.AppendLine("  reset!: resets the stick");
             help.AppendLine("  restore!: restores from eeprom.bin in the hyper directory");
+            help.AppendLine("  rtr_setpoint nodeId {temperature}: sets the thermostat setpoint in degrees Celcius");
             help.AppendLine("  show nodeId [count] [event]: shows last events from the devices, optionally filtered. Example: show 2 10 battery_report");
             help.AppendLine("  wakeup nodeId: gets the wake up intervall of a device, in seconds");
             help.AppendLine("  wakeup nodeId value: sets the wake up intervall of a device, in seconds");
@@ -596,7 +601,7 @@ namespace hyper
             {
                 success = Common.SetBinary(Program.controller, nodeId, value);
             }
-            LogBasicOutcome(action, nodeId, retryNum, success);
+            LogActionOutcome(action, nodeId, success, retryNum);
             if (!success && (retryNum < retryDelaysForBasic.Length))
             {
                 int delay = retryDelaysForBasic[retryNum];
@@ -605,7 +610,7 @@ namespace hyper
             }
         }
 
-        private void LogBasicOutcome(string action, byte nodeId, int retryNum, bool success)
+        private void LogActionOutcome(string action, byte nodeId, bool success, int retryNum = int.MaxValue)
         {
             if (success)
             {
@@ -629,6 +634,20 @@ namespace hyper
 
             Task task = Task.Delay(delay * 1000)
                 .ContinueWith(t => inputManager.InjectCommand(newCmd));
+        }
+
+        private void ThermostatSetpoint(Regex rtr_setpointRegex, string setpointVal)
+        {
+            var match = rtr_setpointRegex.Match(setpointVal);
+            var val = match.Groups[1].Value;
+            var nodeId = byte.Parse(val);
+            val = match.Groups[2].Value;
+            float value = 0;
+            if (float.TryParse(val, out value))
+            {
+                bool success = Common.ThermostatSetpoint(Program.controller, nodeId, value);
+                LogActionOutcome("rtr_setpoint", nodeId, success);
+            }
         }
 
         private static void WakeUp(Regex wakeUpRegex, string cmd)

@@ -21,7 +21,10 @@
             STATE_CLOSED,
             BASIC,
             ILLUMINANCE,
-            ULTRAVIOLET
+            ULTRAVIOLET,
+            THERMOSTAT_SETPOINT,
+            THERMOSTAT_OPERATING_STATE,
+            THERMOSTAT_MODE,
         }
 
         //public static EventKey GetEventTypeByMultilevelType(byte eventValue)

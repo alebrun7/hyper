@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Utils;
 using ZWave.CommandClasses;
 
 namespace hyper.Helper.Extension
@@ -131,6 +132,38 @@ namespace hyper.Helper.Extension
                     {
                         eventType = Enums.EventKey.BASIC;
                         floatVal = basicSet.value == 255 ? 1.0f : 0.0f;
+                        return true;
+                    }
+                case COMMAND_CLASS_THERMOSTAT_SETPOINT_V3.THERMOSTAT_SETPOINT_REPORT report:
+                    {
+                        floatVal = -1;
+                        eventType = Enums.EventKey.UNKNOWN;
+                        const byte Heating = 1;
+                        const byte Celcius = 0; //Fahrenheit = 1;
+                        if (report.properties1.setpointType == Heating && report.properties2.scale == Celcius)
+                        {
+                            eventType = Enums.EventKey.THERMOSTAT_SETPOINT;
+                            var precision = report.properties2.precision;
+                            //value is MSB First (Big Endian), 1, 2 or 4 bytes
+                            floatVal = Tools.GetInt32(report.value.ToArray());
+                            //The setpoint temperature in Celcius
+                            floatVal /= MathF.Pow(10f, precision);
+                            return true;
+                        }
+                        return false;
+                    }
+                case COMMAND_CLASS_THERMOSTAT_OPERATING_STATE_V2.THERMOSTAT_OPERATING_STATE_REPORT report:
+                    {
+                        //0: Idle, 1: Heating. Changes depending on the temperature
+                        floatVal = report.properties1.operatingState;
+                        eventType = Enums.EventKey.THERMOSTAT_OPERATING_STATE;
+                        return true;
+                    }
+                case COMMAND_CLASS_THERMOSTAT_MODE_V3.THERMOSTAT_MODE_REPORT report:
+                    {
+                        //0: OFF, 1: HEAT. Normally 1
+                        floatVal = report.properties1.mode;
+                        eventType = Enums.EventKey.THERMOSTAT_MODE;
                         return true;
                     }
                 default:

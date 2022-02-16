@@ -710,6 +710,24 @@ namespace hyper
             return false;
         }
 
+        internal static bool ThermostatSetpoint(Controller controller, byte nodeId, float value)
+        {
+            Common.logger.Info("ThermostatSetpoint node {0} with value {1}", nodeId, value);
+            var cmd = new COMMAND_CLASS_THERMOSTAT_SETPOINT_V3.THERMOSTAT_SETPOINT_SET();
+            const byte Heating = 1;
+            const byte Celcius = 0; //Fahrenheit = 1;
+            cmd.properties1.setpointType = Heating;
+
+            cmd.properties2.precision = 1;
+            cmd.properties2.scale = Celcius;
+            cmd.properties2.size = 2; //short
+            ushort valueShort = (ushort)(value * 10f); //precision 1
+            cmd.value = Tools.GetBytes(valueShort);
+
+            var sendDataResult = controller.SendData(nodeId, cmd, txOptions);
+            return sendDataResult.TransmitStatus == TransmitStatuses.CompleteOk;
+        }
+
         public static bool WriteNVRam(Controller controller, byte[] eeprom)
         {
             if (eeprom.Length != 65536)
