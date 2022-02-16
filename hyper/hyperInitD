@@ -17,6 +17,7 @@ PIDFILE=/var/run/hyper.pid
 CWD=/var/inhaus/hyper
 CMD="/var/inhaus/hyper/hyper /dev/ttyUSB_ZStickGen5"
 #CMD="/var/inhaus/hyper/hyper -- -udpmultiplexer /dev/ttyAMA0"
+#PRESERVE=0  #set to 1 to preserve this file during update
 
 case "$1" in
     start)

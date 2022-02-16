@@ -138,13 +138,19 @@ print("done")
 #stop hyper
 print("stopping hyper")
 if os.path.exists("/etc/init.d/hyper"):
+    text = open('/etc/init.d/hyper', 'r').read()
     subprocess.call("/etc/init.d/hyper stop".split(" "))
-    os.unlink("/etc/init.d/hyper")
-#copy to /etc/init.d while removing windows line breaks
-text = open('./publishlinux-arm/hyperInitD', 'r').read().replace('\r\n', '\n')
-open("/etc/init.d/hyper", 'w').write(text)
-make_executable("/etc/init.d/hyper")
-subprocess.call("update-rc.d hyper defaults".split(" "))
+    if text.find('PRESERVE=1') == -1:
+        os.unlink("/etc/init.d/hyper")
+    else:
+        print("preserving existing /etc/init.d/hyper")
+
+if not os.path.exists("/etc/init.d/hyper"):
+    #copy to /etc/init.d while removing windows line breaks
+    text = open('./publishlinux-arm/hyperInitD', 'r').read().replace('\r\n', '\n')
+    open("/etc/init.d/hyper", 'w').write(text)
+    make_executable("/etc/init.d/hyper")
+    subprocess.call("update-rc.d hyper defaults".split(" "))
 print("done")
 
 
