@@ -16,6 +16,8 @@ namespace hyper.Tests
         private const int TestProductId = 139;
         private const int TestProdutId2 = 116;
         private const string DefaultProfile = "default";
+        const string ProfileParam = "4";
+
 
         [TestMethod]
         public void GetConfigurationForDevice_TypeNotUnique_ReturnsCorrectEntry()
@@ -108,6 +110,43 @@ namespace hyper.Tests
 
             Assert.IsNotNull(config);
             Assert.AreEqual(DefaultProfile, config.profile);
+        }
+
+        [TestMethod]
+        public void GetConfigurationForDevice_ProfileWithParameter_ReturnsConfigWithReplacedParam()
+        {
+            List<ConfigItem> configList = SetupConfigListForProfileParameterTests();
+
+            var config = Common.GetConfigurationForDevice(
+                configList, TestManufacturerId, TestProductTypeId, TestProductId, TestProfile + " " + ProfileParam);
+
+            Assert.IsNotNull(config);
+            Assert.AreEqual(TestProfile, config.profile);
+            Assert.AreEqual(ProfileParam, config.groups[2]);
+        }
+
+        private List<ConfigItem> SetupConfigListForProfileParameterTests()
+        {
+            var configList = new List<ConfigItem>();
+            AddDevice(configList, TestDeviceName, TestManufacturerId, TestProductTypeId, TestProductId, DefaultProfile);
+            AddDevice(configList, TestDeviceName, TestManufacturerId, TestProductTypeId, TestProductId, TestProfile);
+            configList[1].groups.Add(2, "{0}"); //Placeholder for the param
+            return configList;
+        }
+
+        [TestMethod]
+        public void GetConfigurationForDevice_ProfileWithDifferentParameter_ReturnsConfigWithReplacedParam()
+        {
+            List<ConfigItem> configList = SetupConfigListForProfileParameterTests();
+
+            Common.GetConfigurationForDevice(
+                configList, TestManufacturerId, TestProductTypeId, TestProductId, TestProfile + " " + 42);
+            var config = Common.GetConfigurationForDevice(
+                configList, TestManufacturerId, TestProductTypeId, TestProductId, TestProfile + "  " + ProfileParam);
+
+            Assert.IsNotNull(config);
+            Assert.AreEqual(TestProfile, config.profile);
+            Assert.AreEqual(ProfileParam, config.groups[2]);
         }
 
         [TestMethod]

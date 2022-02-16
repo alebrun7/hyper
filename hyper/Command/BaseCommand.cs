@@ -9,6 +9,7 @@ namespace hyper.Command
     {
         internal const string OneTo255Regex = @"\b(?:[1-9]|[1-8][0-9]|9[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b";
         internal const string ZeroTo255Regex = @"\b(?:[0-9]|[1-8][0-9]|9[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b";
+        internal const string ProfileRegex = @"[a-zA-Z_]+\s*\d*";
 
         public byte NodeId { get; set; } = 0;
 

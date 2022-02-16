@@ -68,5 +68,20 @@ namespace hyper.Tests.Command
             Assert.AreEqual(ExpectedProfile, profile);
             Assert.IsTrue(retry);
         }
+
+        [TestMethod]
+        public void GetProfile_WithParam_ReturnsProfileIncludingParam()
+        {
+            const string ExpectedProfile = "rtr_direct 4";
+            const string command = "config 2 " + ExpectedProfile;
+
+            bool isMatch = ConfigCommand.IsMatch(command);
+            string profile = ConfigCommand.GetProfile(command);
+            bool retry = ConfigCommand.IsRetry(command);
+
+            Assert.IsTrue(isMatch);
+            Assert.AreEqual(ExpectedProfile, profile);
+            Assert.IsFalse(retry);
+        }
     }
 }

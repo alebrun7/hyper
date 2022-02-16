@@ -39,5 +39,19 @@ namespace hyper.Tests.Command
             Assert.IsTrue(isMatch);
             Assert.AreEqual(ExpectedProfile, profile);
         }
+
+        [TestMethod]
+        public void GetProfile_WithParam_ReturnsProfileIncludingParam()
+        {
+            const string ExpectedProfile = "bw_direct 32";
+            const string Command = "replace 2 " + ExpectedProfile;
+
+            bool isMatch = ReplaceCommand.IsMatch(Command);
+            string profile = ReplaceCommand.GetProfile(Command);
+
+            Assert.IsTrue(isMatch);
+            Assert.AreEqual(ExpectedProfile, profile);
+        }
+
     }
 }

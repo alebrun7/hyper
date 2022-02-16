@@ -13,7 +13,7 @@ namespace hyper
         private readonly Controller controller;
         private readonly List<ConfigItem> configList;
         private readonly string profile;
-        private static Regex regex = new Regex(@$"^include\b\s*([a-zA-Z_]+)?");
+        private static Regex regex = new Regex(@$"^include\b\s*({ProfileRegex})?");
 
 
         public static bool IsMatch(string includeVal)

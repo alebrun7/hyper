@@ -1,7 +1,4 @@
-﻿using hyper.Command;
-using hyper.Helper;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Text.RegularExpressions;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace hyper.Tests.Command
 {
@@ -28,6 +25,19 @@ namespace hyper.Tests.Command
         public void GetRegex_WithProfile()
         {
             const string ExpectedProfile = "battery";
+            const string Command = "include " + ExpectedProfile;
+
+            bool isMatch = IncludeCommand.IsMatch(Command);
+            string profile = IncludeCommand.GetProfile(Command);
+
+            Assert.IsTrue(isMatch);
+            Assert.AreEqual(ExpectedProfile, profile);
+        }
+
+        [TestMethod]
+        public void GetProfile_WithParam_ReturnsProfileIncludingParam()
+        {
+            const string ExpectedProfile = "bw_direct 32";
             const string Command = "include " + ExpectedProfile;
 
             bool isMatch = IncludeCommand.IsMatch(Command);

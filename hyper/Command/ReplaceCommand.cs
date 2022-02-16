@@ -10,7 +10,7 @@ namespace hyper
 {
     public class ReplaceCommand : BaseCommand
     {
-        private static Regex regex = new Regex(@$"^replace\b\s*({OneTo255Regex})\s*([a-zA-Z_]+)?");
+        private static Regex regex = new Regex(@$"^replace\b\s*({OneTo255Regex})\s*({ProfileRegex})?");
 
         private readonly Controller controller;
         private readonly byte nodeId;

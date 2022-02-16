@@ -179,12 +179,14 @@ namespace hyper
         }
 
         public static ConfigItem GetConfigurationForDevice(List<ConfigItem> configList,
-            int manufacturerId, int productTypeId, int productId, string profile = null)
+            int manufacturerId, int productTypeId, int productId, string profileWithParam = null)
         {
             const string DefaultProfile = "default";
-            if (string.IsNullOrEmpty(profile))
+            string paramValue = "";
+            string profile = DefaultProfile;
+            if (!string.IsNullOrEmpty(profileWithParam))
             {
-                profile = DefaultProfile;
+                profile = RemoveParamFromProfileName(profileWithParam, out paramValue);
             }
             var foundList = configList.FindAll(item =>
                     item.manufacturerId == manufacturerId
@@ -197,6 +199,47 @@ namespace hyper
             if (config == null && foundList.Count > 0)
             {
                 config = foundList.Find(item => DefaultProfile.Equals(item.profile) || string.IsNullOrEmpty(item.profile));
+            }
+            config = ReplaceParamValueInConfig(paramValue, config);
+            return config;
+        }
+
+        /// <summary>
+        /// Make a deep clone of the config item. We need it to change some values without touching the original list.
+        /// </summary>
+        /// <param name="config"></param>
+        /// <returns></returns>
+        private static ConfigItem CloneConfigItem(ConfigItem config)
+        {
+            var serializer = new SerializerBuilder().WithNamingConvention(CamelCaseNamingConvention.Instance).Build();
+            var yaml = serializer.Serialize(config);
+
+            var deserializer = new DeserializerBuilder().WithNamingConvention(CamelCaseNamingConvention.Instance).Build();
+            return deserializer.Deserialize<ConfigItem>(yaml);
+        }
+
+        private static string RemoveParamFromProfileName(string profileWithParam, out string param)
+        {
+            var split = profileWithParam.Split(" ", StringSplitOptions.RemoveEmptyEntries);
+            if (split.Length > 1)
+            {
+                param = split[1];
+            }
+            else
+            {
+                param = "";
+            }
+            return split[0];
+        }
+
+        private static ConfigItem ReplaceParamValueInConfig(string param, ConfigItem config)
+        {
+            if (config != null && !String.IsNullOrEmpty(param)) {
+                config = CloneConfigItem(config);
+                foreach (var key in config.groups.Keys.ToArray<byte>())
+                {
+                    config.groups[key] = String.Format(config.groups[key], param);
+                }
             }
             return config;
         }
@@ -258,24 +301,13 @@ namespace hyper
                         Common.logger.Info("Too many retrys or aborted!");
                         return false;
                     }
-                    // bool associationCleared = ClearAssociations(controller, nodeId);
-                    //while (!associationCleared)
-                    //{
-                    //    Common.logger.Info("Not successful! Trying again, please wake up device.");
-                    //    associationCleared = ClearAssociations(controller, nodeId);
-                    //    retryCount--;
-                    //    if (retryCount <= 0 || abort)
-                    //    {
-                    //        Common.logger.Info("Too many retrys or aborted!");
-                    //        return false;
-                    //    }
-                    //    Thread.Sleep(200);
-                    //}
                 }
 
-                foreach (var group in config.groups)
+                var associations = ExpandAssociationList(config);
+                foreach (var group in associations)
                 {
                     var groupIdentifier = group.Key;
+
                     var member = group.Value;
 
                     retryCount = 3;
@@ -410,6 +442,30 @@ namespace hyper
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Allows for multiple nodes for each group. Transforms the groups Dictionary to a list of individual associations
+        /// </summary>
+        /// <param name="config"></param>
+        /// <returns></returns>
+        private static List<KeyValuePair<byte, byte>> ExpandAssociationList(ConfigItem config)
+        {
+            var associations = new List<KeyValuePair<byte, byte>>();
+            foreach (var group in config.groups)
+            {
+                char[] separators = new char[] { ' ', ',' };
+                var values = group.Value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var value in values)
+                {
+                    byte member = 0;
+                    if (byte.TryParse(value, out member))
+                    {
+                        associations.Add(new KeyValuePair<byte, byte>(group.Key, member));
+                    }
+                }
+            }
+            return associations;
         }
 
         private static bool ValidateWakeUp(Controller controller, byte nodeId, ConfigItem config)
@@ -589,7 +645,7 @@ namespace hyper
 
         public static bool SetBinary(Controller controller, byte nodeId, bool value)
         {
-            Common.logger.Info("Basic_Set for node {0}: {1}", nodeId, value);
+            Common.logger.Info("SWITCH_BINARY_SET for node {0}: {1}", nodeId, value);
             var cmd = new COMMAND_CLASS_SWITCH_BINARY_V2.SWITCH_BINARY_SET()
             {
                 targetValue = Convert.ToByte(value)

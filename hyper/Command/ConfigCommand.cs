@@ -10,7 +10,7 @@ namespace hyper
 {
     public class ConfigCommand : BaseCommand
     {
-        private static Regex regex = new Regex(@$"^config\s*({OneTo255Regex})\s*([a-zA-Z_]+)?\s*(!)?");
+        private static Regex regex = new Regex(@$"^config\s*({OneTo255Regex})\s*({ProfileRegex})?\s*(!)?");
 
         private readonly Controller controller;
         private readonly List<ConfigItem> configList;
@@ -36,6 +36,11 @@ namespace hyper
             return regex.Match(command).Groups[3].Value == "!";
         }
 
+        /// <summary>
+        /// Get the profile, including an optional parameter
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
         public static string GetProfile(string command)
         {
             return regex.Match(command).Groups[2].Value;

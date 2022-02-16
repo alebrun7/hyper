@@ -54,5 +54,13 @@ namespace hyper.Tests.Command
             var actual = QueueCommand.GetParameter("queue 2 config");
             Assert.AreEqual("", actual);
         }
+
+        [TestMethod]
+        public void GetParameter_WithProfileParam_ReturnsProfileIncludingParam()
+        {
+            const string ExpectedProfile = "bw_direct 32";
+            var actual = QueueCommand.GetParameter("queue 2 config " + ExpectedProfile);
+            Assert.AreEqual(ExpectedProfile, actual);
+        }
     }
 }
