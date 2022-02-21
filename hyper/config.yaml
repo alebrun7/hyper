@@ -357,7 +357,7 @@
     manufacturerId: 351 #(015F)
     productTypeId: 1810 # (0x712)
     productId: 20738 #(5102)
-    profile: rtr_switching # switching a relais -- call with: config {nodeId} rtr_switching {relaisNodeId}
+    profile: rtr_control # switching a relais -- call with: config {nodeId} rtr_switching {relaisNodeId}
     groups:
         1: 1 # Lifeline
         2: 1 # Switching Relays (sends BASIC_SET), send to controller
