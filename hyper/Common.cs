@@ -160,21 +160,17 @@ namespace hyper
             string profile, ref bool abort)
         {
             var retryCount = 3;
-            var gotDeviceIds = GetManufactor(controller, nodeId, out int manufacturerId, out int productTypeId, out int productId);
-            while (!gotDeviceIds && retryCount >= 0 && !abort)
+            ConfigItem config = null;
+            PerformWithRetries(ref retryCount, ref abort, () =>
             {
-                Common.logger.Info("could not get device data! Trying again, wake up device!");
-                gotDeviceIds = GetManufactor(controller, nodeId, out manufacturerId, out productTypeId, out productId);
-                retryCount--;
-            }
-            if (!gotDeviceIds)
-            {
-                Common.logger.Info("Too many retrys, aborting!");
-                return null;
-            }
-
-            var config = GetConfigurationForDevice(
-                configList, manufacturerId, productTypeId, productId, profile);
+                bool gotDeviceIds = GetManufactor(controller, nodeId,
+                    out int manufacturer, out int productType, out int product);
+                if (gotDeviceIds)
+                {
+                    config = GetConfigurationForDevice(configList, manufacturer, productType, product, profile);
+                }
+                return gotDeviceIds;
+            });
             return config;
         }
 
@@ -246,6 +242,7 @@ namespace hyper
 
         public static bool GetManufactor(Controller controller, byte nodeId, out int manufacturerId, out int productTypeId, out int productId)
         {
+            logger.Info($"Get device data for node {nodeId}...");
             var cmd = new COMMAND_CLASS_MANUFACTURER_SPECIFIC.MANUFACTURER_SPECIFIC_GET();
             var result = controller.RequestData(nodeId, cmd, Common.txOptions, new COMMAND_CLASS_MANUFACTURER_SPECIFIC.MANUFACTURER_SPECIFIC_REPORT(), 5000);
             if (result)
@@ -332,90 +329,111 @@ namespace hyper
             return true;
         }
 
-            public static bool SetConfiguration(Controller controller, byte nodeId, ConfigItem config, ref bool abort)
+        public static bool SetConfiguration(Controller controller, byte nodeId, ConfigItem config, ref bool abort)
+        {
+            bool configured = ConfigureAssociations(controller, nodeId, config, ref abort);
+            configured = configured && ConfigureParameters(controller, nodeId, config, ref abort);
+            return configured && ConfigureWakeup(controller, nodeId, config, ref abort);
+        }
+
+        public static bool ConfigureAssociations(Controller controller, byte nodeId, ConfigItem config, ref bool abort)
         {
             int retryCount = 3;
             if (config.groups != null && config.groups.Count != 0)
             {
-                if (config.groups.Count != 0)
-                {
-                    Common.logger.Info("Setting " + config.groups.Count + " associtions");
-                    var associationCleared = false;
-                    do
-                    {
-                        associationCleared = ClearAssociations(controller, nodeId);
-                        if (!associationCleared)
-                        {
-                            Common.logger.Info("Not successful! Trying again, please wake up device.");
-                            Thread.Sleep(200);
-                            retryCount--;
-                        }
-                    } while (!associationCleared && !abort && retryCount > 0);
-
-                    if (retryCount <= 0 || abort)
-                    {
-                        Common.logger.Info("Too many retrys or aborted!");
-                        return false;
-                    }
-                }
-
-                var associations = ExpandAssociationList(config);
-                foreach (var group in associations)
+                Common.logger.Info("Setting " + config.groups.Count + " associations");
+                foreach (var group in config.groups)
                 {
                     var groupIdentifier = group.Key;
-
-                    var member = group.Value;
-
-                    retryCount = 3;
-                    var associationValidated = false;
-                    do
+                    IList<byte> currentAssociations = null;
+                    PerformWithRetries(ref retryCount, ref abort, () => {
+                        currentAssociations = GetAssociationsForGroup(controller, nodeId, groupIdentifier);
+                        return currentAssociations != null;
+                    });
+                    if (currentAssociations == null)
                     {
-                        var associationAdded = AddAssociation(controller, nodeId, groupIdentifier, member);
-                        if (associationAdded)
-                        {
-                            associationValidated = AssociationContains(controller, nodeId, groupIdentifier, member);
-                        }
-                        if (!associationValidated)
-                        {
-                            Common.logger.Info("Not successful! Trying again, please wake up device.");
-                            Thread.Sleep(200);
-                            retryCount--;
-                        }
-                    } while (!associationValidated && !abort && retryCount > 0);
-
-                    if (retryCount <= 0 || abort)
-                    {
-                        Common.logger.Info("Too many retrys or aborted!");
                         return false;
                     }
-
-                    //var associationAdded = AddAssociation(controller, nodeId, groupIdentifier, member);
-                    //var associationValidated = false;
-                    //if (associationAdded)
-                    //{
-                    //    associationValidated = AssociationContains(controller, nodeId, groupIdentifier, member);
-                    //}
-
-                    //while (!associationAdded || !associationValidated)
-                    //{
-                    //    Common.logger.Info("Not successful! Trying again, please wake up device.");
-                    //    associationAdded = AddAssociation(controller, nodeId, groupIdentifier, member);
-                    //    if (associationAdded)
-                    //    {
-                    //        associationValidated = AssociationContains(controller, nodeId, groupIdentifier, member);
-                    //    }
-                    //    retryCount--;
-                    //    if (retryCount <= 0 || abort)
-                    //    {
-                    //        Common.logger.Info("Too many retrys or aborted!");
-                    //        return false;
-                    //    }
-                    //    Thread.Sleep(200);
-                    //}
-                    retryCount = 3;
+                    var expected = GetAssociationsFromConfigGroup(group);
+                    var missing = expected.Except(currentAssociations);
+                    var tooMuch = currentAssociations.Except(expected);
+                    if (!tooMuch.IsNullOrEmpty())
+                    {
+                        bool removed = PerformWithRetries(ref retryCount, ref abort, () =>
+                        {
+                            return RemoveAssociations(controller, nodeId, groupIdentifier, tooMuch.ToList());
+                        });
+                        if (!removed)
+                        {
+                            return false;
+                        }
+                    }
+                    if (!missing.IsNullOrEmpty())
+                    {
+                        bool added = PerformWithRetries(ref retryCount, ref abort, () =>
+                        {
+                            return AddAssociations(controller, nodeId, groupIdentifier, missing.ToList());
+                        });
+                        if (!added)
+                        {
+                            return false;
+                        }
+                    }
+                    if (missing.IsNullOrEmpty() && tooMuch.IsNullOrEmpty())
+                    {
+                        logger.Info($"node {nodeId}, group {groupIdentifier}: nothing to do");
+                    }
+                    else
+                    {
+                        bool validated = PerformWithRetries(ref retryCount, ref abort, () =>
+                        {
+                            currentAssociations = GetAssociationsForGroup(controller, nodeId, groupIdentifier);
+                            missing = expected.Except(currentAssociations);
+                            tooMuch = currentAssociations.Except(expected);
+                            return (missing.IsNullOrEmpty() && tooMuch.IsNullOrEmpty());
+                        });
+                        if (!validated)
+                        {
+                            return false;
+                        }
+                    }
                 }
             }
+            return true;
+        }
 
+        /// <summary>
+        /// Performs a function with some retries if it fails
+        /// </summary>
+        /// <param name="retryCount">Number of retries left</param>
+        /// <param name="abort">Reference to a variable to allow aborting the loop</param>
+        /// <param name="myFunction">The function to performs. Must return true upon success,
+        /// false if it fails</param>
+        static bool PerformWithRetries(ref int retryCount, ref bool abort, Func<bool> myFunction)
+        {
+            bool success = false;
+            do
+            {
+                success = myFunction();
+                if (!success)
+                {
+                    Common.logger.Info("Not successful! Trying again, please wake up device.");
+                    Thread.Sleep(200);
+                    retryCount--;
+                }
+
+            } while (!success && !abort && retryCount > 0);
+            if (retryCount <= 0 || abort)
+            {
+                Common.logger.Info("Too many retrys or aborted!");
+                return false;
+            }
+            return true;
+        }
+
+        public static bool ConfigureParameters(Controller controller, byte nodeId, ConfigItem config, ref bool abort)
+        {
+            int retryCount = 3;
             if (config.config != null && config.config.Count != 0)
             {
                 Common.logger.Info("Setting " + config.config.Count + " configuration parameter");
@@ -424,99 +442,50 @@ namespace hyper
                     var configParameter = configurationEntry.Key;
                     var configValue = configurationEntry.Value;
 
-                    bool parameterValidated = false;
-                    do
+                    bool setAndValidated = PerformWithRetries(ref retryCount, ref abort, () =>
                     {
                         var parameterSet = SetParameter(controller, nodeId, configParameter, configValue);
                         if (parameterSet)
                         {
-                            parameterValidated = ValidateParameter(controller, nodeId, configParameter, configValue);
+                            return ValidateParameter(controller, nodeId, configParameter, configValue);
                         }
-                        if (!parameterValidated)
-                        {
-                            Common.logger.Info("Not successful! Trying again, please wake up device.");
-                            Thread.Sleep(200);
-                            retryCount--;
-                        }
-                    } while (!parameterValidated && !abort && retryCount > 0);
+                        return false;
+                    });
 
-                    if (retryCount <= 0 || abort)
+                    if (!setAndValidated)
                     {
-                        Common.logger.Info("Too many retrys or aborted!");
                         return false;
                     }
-
-                    //var parameterSet = SetParameter(controller, nodeId, configParameter, configValue);
-                    //var parameterValidated = false;
-                    //if (parameterSet)
-                    //{
-                    //    parameterValidated = ValidateParameter(controller, nodeId, configParameter, configValue);
-                    //}
-                    //while (!parameterSet || !parameterValidated)
-                    //{
-                    //    Common.logger.Info("Not successful! Trying again, please wake up device.");
-                    //    parameterSet = SetParameter(controller, nodeId, configParameter, configValue);
-                    //    if (parameterSet)
-                    //    {
-                    //        parameterValidated = ValidateParameter(controller, nodeId, configParameter, configValue);
-                    //    }
-                    //    retryCount--;
-                    //    if (retryCount <= 0 || abort)
-                    //    {
-                    //        Common.logger.Info("Too many retrys or aborted!");
-                    //        return false;
-                    //    }
-                    //}
                     Thread.Sleep(200);
                 }
             }
-            if (config.wakeup != 0)
-            {
-                retryCount = 3;
-                GetWakeUp(controller, nodeId);
-                bool intervalValidated = false;
-                do
-                {
-                    var wakeupSet = SetWakeUp(controller, nodeId, config.wakeup);
-                    if (wakeupSet)
-                    {
-                        intervalValidated = ValidateWakeUp(controller, nodeId, config);
-                        if (!intervalValidated)
-                        {
-                            Common.logger.Info("Not successful! Trying again, please wake up device.");
-                            Thread.Sleep(200);
-                            retryCount--;
-                        }
-                    }
-                } while (!intervalValidated && !abort && retryCount > 0);
-
-                if (retryCount <= 0 || abort)
-                {
-                    Common.logger.Info("Too many retrys or aborted!");
-                    return false;
-                }
-            }
-
             return true;
         }
 
-        /// <summary>
-        /// Allows for multiple nodes for each group. Transforms the groups Dictionary to a list of individual associations
-        /// </summary>
-        /// <param name="config"></param>
-        /// <returns></returns>
-        private static List<KeyValuePair<byte, byte>> ExpandAssociationList(ConfigItem config)
+        public static bool ConfigureWakeup(Controller controller, byte nodeId, ConfigItem config, ref bool abort)
         {
-            var associations = new List<KeyValuePair<byte, byte>>();
-            foreach (var group in config.groups)
+            if (config.wakeup != 0)
             {
-                var values = GetAssociationsFromConfigGroup(group);
-                foreach (var value in values)
+                int retryCount = 3;
+                int actual = GetWakeUp(controller, nodeId);
+                if (actual == config.wakeup)
                 {
-                    associations.Add(new KeyValuePair<byte, byte>(group.Key, value));
+                    logger.Info($"node {nodeId}: noting to do for wake up interval");
+                }
+                else
+                {
+                    return PerformWithRetries(ref retryCount, ref abort, () =>
+                    {
+                        var wakeupSet = SetWakeUp(controller, nodeId, config.wakeup);
+                        if (wakeupSet)
+                        {
+                            return ValidateWakeUp(controller, nodeId, config);
+                        }
+                        return false;
+                    });
                 }
             }
-            return associations;
+            return true;
         }
 
         private static IList<byte> GetAssociationsFromConfigGroup(KeyValuePair<byte, string> group)
@@ -700,36 +669,39 @@ namespace hyper
             }
         }
 
-        private static IList<byte> GetAssociationsForGroup(Controller controller, byte nodeId, byte groupIdentifier)
+        private static IList<byte> GetAssociationsForGroup(Controller controller, byte nodeId, byte group)
         {
+            logger.Info($"Get associations for node {nodeId}, group {group}...");
             var cmd = new COMMAND_CLASS_ASSOCIATION.ASSOCIATION_GET();
-            cmd.groupingIdentifier = groupIdentifier;
+            cmd.groupingIdentifier = group;
             var result = controller.RequestData(nodeId, cmd, Common.txOptions, new COMMAND_CLASS_ASSOCIATION.ASSOCIATION_REPORT(), 20000);
             if (result)
             {
                 var rpt = (COMMAND_CLASS_ASSOCIATION.ASSOCIATION_REPORT)result.Command;
-                Common.logger.Info("members for node {0}, group {1}: {2}", nodeId, groupIdentifier, String.Join(", ", rpt.nodeid));
+                Common.logger.Info("members for node {0}, group {1}: {2}", nodeId, group, String.Join(", ", rpt.nodeid));
                 return rpt.nodeid;
             }
             return null;
         }
 
-        public static bool AddAssociation(Controller controller, byte nodeId, byte groupIdentifier, byte member)
+        public static bool AddAssociations(Controller controller, byte nodeId, byte group, IList<byte> nodes)
         {
-            Common.logger.Info("Add associtation - group " + groupIdentifier + " - node " + member);
+            string list = String.Join(", ", nodes);
+            logger.Info($"Add associations for node {nodeId}, group {group}: {list}...");
             var cmd = new COMMAND_CLASS_ASSOCIATION.ASSOCIATION_SET();
-            cmd.groupingIdentifier = groupIdentifier;
-            cmd.nodeId = new List<byte>() { member };
+            cmd.groupingIdentifier = group;
+            cmd.nodeId = nodes;
             var setAssociation = controller.SendData(nodeId, cmd, Common.txOptions);
             return setAssociation.TransmitStatus == TransmitStatuses.CompleteOk;
         }
 
-        private static bool ClearAssociations(Controller controller, byte nodeId)
+        private static bool RemoveAssociations(Controller controller, byte nodeId, byte group, IList<byte> nodes)
         {
-            Common.logger.Info("Clear associtations - group  for node " + nodeId);
+            string list = String.Join(", ", nodes);
+            logger.Info($"Remove associations for node {nodeId}, group {group}: {list}...");
             var cmd = new COMMAND_CLASS_ASSOCIATION.ASSOCIATION_REMOVE();
-            cmd.groupingIdentifier = 0;
-            cmd.nodeId = new byte[] { 0 };
+            cmd.groupingIdentifier = group;
+            cmd.nodeId = nodes;
             var clearAssociation = controller.SendData(nodeId, cmd, Common.txOptions);
             return clearAssociation.TransmitStatus == TransmitStatuses.CompleteOk;
         }
