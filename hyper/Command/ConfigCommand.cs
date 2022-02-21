@@ -10,12 +10,12 @@ namespace hyper
 {
     public class ConfigCommand : BaseCommand
     {
-        private static Regex regex = new Regex(@$"^config\s*({OneTo255Regex})\s*({ProfileRegex})?\s*(!)?");
+        private static Regex regex = new Regex(@$"^(config|readconfig)\s*({OneTo255Regex})\s*({ProfileRegex})?\s*(!)?");
 
         private readonly Controller controller;
         private readonly List<ConfigItem> configList;
         private readonly string profile;
-
+        private readonly bool readconfig;
         private bool abort = false;
 
         public bool Active { get; private set; } = false;
@@ -25,15 +25,20 @@ namespace hyper
             return regex.IsMatch(command);
         }
 
+        public static bool IsReadConfig(string command)
+        {
+            return "readconfig".Equals(regex.Match(command).Groups[1].Value);
+        }
+
         public static byte GetNodeId(string command)
         {
-            var val = regex.Match(command).Groups[1].Value;
+            var val = regex.Match(command).Groups[2].Value;
             return byte.Parse(val);
         }
 
         public static bool IsRetry(string command)
         {
-            return regex.Match(command).Groups[3].Value == "!";
+            return regex.Match(command).Groups[4].Value == "!";
         }
 
         /// <summary>
@@ -43,16 +48,18 @@ namespace hyper
         /// <returns></returns>
         public static string GetProfile(string command)
         {
-            return regex.Match(command).Groups[2].Value;
+            return regex.Match(command).Groups[3].Value;
         }
 
-        public ConfigCommand(Controller controller, byte nodeId, List<ConfigItem> configList, bool retry = false, string profile = "")
+        public ConfigCommand(Controller controller, byte nodeId, List<ConfigItem> configList, bool retry = false,
+            string profile = "", bool readconfig = false)
         {
             this.controller = controller;
             NodeId = nodeId;
             this.configList = configList;
             this.Retry = retry;
             this.profile = profile;
+            this.readconfig = readconfig;
         }
 
         public override bool Start()
@@ -85,13 +92,28 @@ namespace hyper
             {
                 Common.logger.Info($"using configuration profile {config.profile}");
             }
-            Common.logger.Info("Setting values.");
-            if (Common.SetConfiguration(controller, NodeId, config, ref abort))
+            if (readconfig)
             {
-                Common.logger.Info($"Configuration successful for node {NodeId}!");
-                Common.logger.Info("-------------------");
-                Active = false;
-                return true;
+                errorMsg = $"Read configuration failed for node {NodeId}!";
+                if (Common.ReadConfiguration(controller, NodeId, config, ref abort))
+                {
+                    Common.logger.Info($"Read configuration successful for node {NodeId}!");
+                    Common.logger.Info("-------------------");
+                    Active = false;
+                    return true;
+                }
+            }
+            else
+            {
+                Common.logger.Info("Setting values.");
+                if (Common.SetConfiguration(controller, NodeId, config, ref abort))
+                {
+                    Common.logger.Info($"Configuration successful for node {NodeId}!");
+                    Common.logger.Info("-------------------");
+                    Active = false;
+                    return true;
+                }
+
             }
             Common.logger.Error(errorMsg);
             return false;

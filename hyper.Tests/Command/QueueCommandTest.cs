@@ -18,6 +18,13 @@ namespace hyper.Tests.Command
         }
 
         [TestMethod]
+        public void IsMatch_ReadConfig_ReturnsTue()
+        {
+            bool isMatch = QueueCommand.IsMatch("queue 2 readconfig");
+            Assert.IsTrue(isMatch);
+        }
+
+        [TestMethod]
         public void GetNodeIds_OneId_ReturnsArray()
         {
             var actual = QueueCommand.GetNodeIds("queue 2 config");

@@ -417,8 +417,9 @@ namespace hyper
                             var nodeId = ConfigCommand.GetNodeId(configVal);
                             bool retry = ConfigCommand.IsRetry(configVal);
                             string profile = ConfigCommand.GetProfile(configVal);
+                            bool isReadConfig = ConfigCommand.IsReadConfig(configVal);
 
-                            currentCommand = new ConfigCommand(Program.controller, nodeId, Program.configList, retry, profile);
+                            currentCommand = new ConfigCommand(Program.controller, nodeId, Program.configList, retry, profile, isReadConfig);
                             break;
                         }
                     case var cmd when wakeUpRegex.IsMatch(cmd):
@@ -509,8 +510,8 @@ namespace hyper
             help.AppendLine("  included:                            shows  list of included devices (may not be up to date afer include/exclude");
             help.AppendLine("  listen {start|stop|filter nodeID}:   Filters the event output. Example listen filter 12");
             help.AppendLine("  ping nodeId:                         checks if a device is reachable");
-            help.AppendLine("  queue nodeID[,nodeID]... config [profile [param]]: configures one or more devices at next wake up");
-            help.AppendLine("  readconfig {nodeId}[!]:              reads the configuation of the device");
+            help.AppendLine("  queue nodeID[,nodeID]... {config|readconfig} [profile [param]]: configures one or more devices at next wake up");
+            help.AppendLine("  readconfig {nodeId} [profile [param]][!]: reads the configuation of the device");
             help.AppendLine("  reload:                              reload configuration files");
             help.AppendLine("  replace nodeId [profile [param]]:    checks existing nodeId, then replaces the device, optionally using a device profile");
             help.AppendLine("  reset!:                              resets the stick");

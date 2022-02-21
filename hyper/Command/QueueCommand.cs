@@ -21,7 +21,7 @@ namespace hyper
 {
     public class QueueCommand : BaseCommand
     {
-        private static Regex regex = new Regex(@$"^queue\s*({OneTo255Regex}+(?:\s*,\s*{OneTo255Regex}+)*)\s*(config)\s*({ProfileRegex})?");
+        private static Regex regex = new Regex(@$"^queue\s*({OneTo255Regex}+(?:\s*,\s*{OneTo255Regex}+)*)\s*(config|readconfig)\s*({ProfileRegex})?");
 
         private readonly Controller controller;
         private List<ConfigItem> configList;

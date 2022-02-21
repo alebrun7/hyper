@@ -83,5 +83,19 @@ namespace hyper.Tests.Command
             Assert.AreEqual(ExpectedProfile, profile);
             Assert.IsFalse(retry);
         }
+
+        [TestMethod]
+        public void IsMatch_AsReadConfig_ReturnsTrue()
+        {
+            bool actual = ConfigCommand.IsMatch("readconfig 2");
+            Assert.IsTrue(actual);
+        }
+
+        [TestMethod]
+        public void IsReadConfig_AsReadConfig_ReturnsTrue()
+        {
+            bool actual = ConfigCommand.IsReadConfig("readconfig 2");
+            Assert.IsTrue(actual);
+        }
     }
 }

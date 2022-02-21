@@ -276,7 +276,63 @@ namespace hyper
             return String.Join(" ", profiles);
         }
 
-        public static bool SetConfiguration(Controller controller, byte nodeId, ConfigItem config, ref bool abort)
+        public static bool ReadConfiguration(Controller controller, byte nodeId, ConfigItem config, ref bool abort)
+        {
+            bool differenceFound = false;
+            if (config.groups != null)
+            {
+                foreach (var group in config.groups)
+                {
+                    var list = GetAssociationsForGroup(controller, nodeId, group.Key);
+                    if (list == null)
+                    {
+                        return false;
+                    }
+                    var expected = GetAssociationsFromConfigGroup(group);
+                    var missing = expected.Except(list);
+                    var tooMuch = list.Except(expected);
+                    if (!missing.IsNullOrEmpty() || !tooMuch.IsNullOrEmpty())
+                    {
+                        differenceFound = true;
+                    }
+                }
+            }
+            if (config.config != null && config.config.Count != 0)
+            {
+                Common.logger.Info("Reading " + config.config.Count + " configuration parameter");
+                foreach (var entry in config.config)
+                {
+                    var configParameter = byte.Parse(entry.Key.Split("_")[0]);
+                    int value = 0;
+                    if (ReadParameter(controller, nodeId, configParameter, ref value))
+                    {
+                        logger.Info($"node {nodeId}, param {configParameter}: {value}");
+                        if (value != entry.Value)
+                        {
+                            differenceFound = true;
+                        }
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            }
+            if (config.wakeup != 0)
+            {
+                if (config.wakeup != GetWakeUp(controller, nodeId))
+                {
+                    differenceFound = true;
+                }
+            }
+            if (differenceFound)
+            {
+                logger.Warn($"node {nodeId}: configuration does not match");
+            }
+            return true;
+        }
+
+            public static bool SetConfiguration(Controller controller, byte nodeId, ConfigItem config, ref bool abort)
         {
             int retryCount = 3;
             if (config.groups != null && config.groups.Count != 0)
@@ -454,18 +510,33 @@ namespace hyper
             var associations = new List<KeyValuePair<byte, byte>>();
             foreach (var group in config.groups)
             {
-                char[] separators = new char[] { ' ', ',' };
-                var values = group.Value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+                var values = GetAssociationsFromConfigGroup(group);
                 foreach (var value in values)
                 {
-                    byte member = 0;
-                    if (byte.TryParse(value, out member))
-                    {
-                        associations.Add(new KeyValuePair<byte, byte>(group.Key, member));
-                    }
+                    associations.Add(new KeyValuePair<byte, byte>(group.Key, value));
                 }
             }
             return associations;
+        }
+
+        private static IList<byte> GetAssociationsFromConfigGroup(KeyValuePair<byte, string> group)
+        {
+            List<byte> nodes = new List<byte>();
+            char[] separators = new char[] { ' ', ',' };
+            var values = group.Value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var value in values)
+            {
+                byte member = 0;
+                if (byte.TryParse(value, out member))
+                {
+                    if (member != 0)
+                    {
+                        nodes.Add(member);
+                    }
+                }
+            }
+            nodes.Sort();
+            return nodes;
         }
 
         private static bool ValidateWakeUp(Controller controller, byte nodeId, ConfigItem config)
@@ -568,13 +639,10 @@ namespace hyper
         {
             var configParameter = byte.Parse(configParameterLong.Split("_")[0]);
             Common.logger.Info("Validate configuration - parameter " + configParameter + " - value " + configValue);
-            COMMAND_CLASS_CONFIGURATION.CONFIGURATION_GET cmd = new COMMAND_CLASS_CONFIGURATION.CONFIGURATION_GET();
-            cmd.parameterNumber = configParameter;
-            var result = controller.RequestData(nodeId, cmd, Common.txOptions, new COMMAND_CLASS_CONFIGURATION.CONFIGURATION_REPORT(), 20000);
-            if (result)
+            int value = 0;
+
+            if (ReadParameter(controller, nodeId, configParameter, ref value))
             {
-                var rpt = (COMMAND_CLASS_CONFIGURATION.CONFIGURATION_REPORT)result.Command;
-                var value = Tools.GetInt32(rpt.configurationValue.ToArray());
                 if (configValue == value)
                 {
                     Common.logger.Info("parameter ist set correctly!");
@@ -593,19 +661,28 @@ namespace hyper
             }
         }
 
+        static bool ReadParameter(Controller controller, byte nodeId, byte configParameter, ref int value)
+        {
+            COMMAND_CLASS_CONFIGURATION.CONFIGURATION_GET cmd = new COMMAND_CLASS_CONFIGURATION.CONFIGURATION_GET();
+            cmd.parameterNumber = configParameter;
+            var result = controller.RequestData(nodeId, cmd, Common.txOptions, new COMMAND_CLASS_CONFIGURATION.CONFIGURATION_REPORT(), 20000);
+            if (result)
+            {
+                var rpt = (COMMAND_CLASS_CONFIGURATION.CONFIGURATION_REPORT)result.Command;
+                value = Tools.GetInt32(rpt.configurationValue.ToArray());
+                return true;
+            }
+            return false;
+        }
 
         public static bool AssociationContains(Controller controller, byte nodeId, byte groupIdentifier, byte member)
         {
             Common.logger.Info("Validate associtation - group " + groupIdentifier + " - node " + member);
 
-            var cmd = new COMMAND_CLASS_ASSOCIATION.ASSOCIATION_GET();
-            cmd.groupingIdentifier = groupIdentifier;
-            var result = controller.RequestData(nodeId, cmd, Common.txOptions, new COMMAND_CLASS_ASSOCIATION.ASSOCIATION_REPORT(), 20000);
-            if (result)
+            var associatedNodes = GetAssociationsForGroup(controller, nodeId, groupIdentifier);
+            if (associatedNodes != null)
             {
-                var rpt = (COMMAND_CLASS_ASSOCIATION.ASSOCIATION_REPORT)result.Command;
-                Common.logger.Info("members: {0}", String.Join(", ", rpt.nodeid));
-                if (rpt.nodeid.Contains(member))
+                if (associatedNodes.Contains(member))
                 {
                     Common.logger.Info(member + " is a member of association group " + groupIdentifier);
                     return true;
@@ -621,6 +698,20 @@ namespace hyper
                 Common.logger.Info("could not get association for group " + groupIdentifier);
                 return false;
             }
+        }
+
+        private static IList<byte> GetAssociationsForGroup(Controller controller, byte nodeId, byte groupIdentifier)
+        {
+            var cmd = new COMMAND_CLASS_ASSOCIATION.ASSOCIATION_GET();
+            cmd.groupingIdentifier = groupIdentifier;
+            var result = controller.RequestData(nodeId, cmd, Common.txOptions, new COMMAND_CLASS_ASSOCIATION.ASSOCIATION_REPORT(), 20000);
+            if (result)
+            {
+                var rpt = (COMMAND_CLASS_ASSOCIATION.ASSOCIATION_REPORT)result.Command;
+                Common.logger.Info("members for node {0}, group {1}: {2}", nodeId, groupIdentifier, String.Join(", ", rpt.nodeid));
+                return rpt.nodeid;
+            }
+            return null;
         }
 
         public static bool AddAssociation(Controller controller, byte nodeId, byte groupIdentifier, byte member)
