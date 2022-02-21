@@ -286,6 +286,10 @@ namespace hyper
                         return false;
                     }
                     var expected = GetAssociationsFromConfigGroup(group);
+                    if (expected == null)
+                    {
+                        return false;
+                    }
                     var missing = expected.Except(list);
                     var tooMuch = list.Except(expected);
                     if (!missing.IsNullOrEmpty() || !tooMuch.IsNullOrEmpty())
@@ -355,6 +359,10 @@ namespace hyper
                         return false;
                     }
                     var expected = GetAssociationsFromConfigGroup(group);
+                    if (expected == null)
+                    {
+                        return false;
+                    }
                     var missing = expected.Except(currentAssociations);
                     var tooMuch = currentAssociations.Except(expected);
                     if (!tooMuch.IsNullOrEmpty())
@@ -502,6 +510,18 @@ namespace hyper
                     {
                         nodes.Add(member);
                     }
+                }
+                else
+                {
+                    if (value == "{0}")
+                    {
+                        logger.Error($"Missing Parameter for the configuration profile");
+                    }
+                    else
+                    {
+                        logger.Error($"The value {value} is not a valid node id");
+                    }
+                    return null;
                 }
             }
             nodes.Sort();
