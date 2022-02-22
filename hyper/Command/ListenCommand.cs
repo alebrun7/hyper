@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using Utils;
 using ZWave;
 using ZWave.BasicApplication.Devices;
@@ -163,6 +164,8 @@ namespace hyper
                         OutputManager.HandleCommand(report, x.SrcNodeId, x.DestNodeId);
                     }
 
+                    LogCommand(x.SrcNodeId, report);
+
                     //    Handle(dummyInstance, x.SrcNodeId, x.Command);
                     if (!Active)
                     {
@@ -257,6 +260,52 @@ namespace hyper
             //   Active = false;
             Common.logger.Info("Listening done!");
             return true;
+        }
+
+        private void LogCommand(byte nodeId, object cmd)
+        {
+            switch(cmd)
+            {
+                case COMMAND_CLASS_MANUFACTURER_SPECIFIC_V2.DEVICE_SPECIFIC_REPORT report:
+                    LogDeviceSpecificReport(nodeId, report);
+                    break;
+            }
+        }
+
+        internal enum DeviceIdType : byte
+        {
+            DeviceType = 0,
+            SerialNumber = 1,
+            PseudoRandomId = 2,
+        };
+
+        internal enum DeviceIdDataFormat : byte
+        {
+            UTF_8 = 0,
+            Binary = 1,
+        };
+
+        private void LogDeviceSpecificReport(object nodeId, COMMAND_CLASS_MANUFACTURER_SPECIFIC_V2.DEVICE_SPECIFIC_REPORT rpt)
+        {
+            string data = "";
+            switch (rpt.properties2.deviceIdDataFormat)
+            {
+                case (byte)DeviceIdDataFormat.UTF_8:
+                    {
+                        Encoding enc = new UTF8Encoding(true, true);
+                        data = enc.GetString(rpt.deviceIdData.ToArray<byte>());
+                    }
+                    break;
+                case (byte)DeviceIdDataFormat.Binary:
+                    data = "h'" + Tools.GetHexShort(rpt.deviceIdData);
+                    break;
+            }
+            byte deviceIdType = rpt.properties1.deviceIdType;
+            if (Enum.IsDefined(typeof(DeviceIdType), deviceIdType))
+            {
+                string infoType = ((DeviceIdType)deviceIdType).ToString();
+                Common.logger.Info($"{infoType} for node {nodeId}: {data}");
+            }
         }
 
         //private void OnCommand(object sender, string e)

@@ -7,11 +7,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Ports;
 using System.Linq;
-using System.Net;
-using System.Net.Sockets;
 using System.Reflection;
 using System.Threading;
-using System.Threading.Tasks;
 using Utils;
 using YamlDotNet.Core;
 using YamlDotNet.Serialization;
@@ -41,8 +38,8 @@ namespace hyper
             {
                 Common.logger.Info("Detected serial ports: {0}", string.Join(" ", detectedPorts));
             }
-            else 
-            { 
+            else
+            {
                 errorMessage = "No serial ports detected";
                 return false;
             }
@@ -249,11 +246,13 @@ namespace hyper
             {
                 var rpt = (COMMAND_CLASS_MANUFACTURER_SPECIFIC.MANUFACTURER_SPECIFIC_REPORT)result.Command;
                 manufacturerId = Tools.GetInt32(rpt.manufacturerId);
-                Common.logger.Info("ManufacturerId: {0} (0x{0:X})",manufacturerId);
+                Common.logger.Info("ManufacturerId: {0} (0x{0:X})", manufacturerId);
                 productId = Tools.GetInt32(rpt.productId);
                 Common.logger.Info("ProductId: {0} (0x{0:X})", productId);
                 productTypeId = Tools.GetInt32(rpt.productTypeId);
                 Common.logger.Info("ProductTypeId: {0} (0x{0:X})", productTypeId);
+
+                SendDeviceSpecificGet(controller, nodeId);
                 return true;
             }
             else
@@ -263,6 +262,21 @@ namespace hyper
                 productId = 0;
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Get Device SeriaNumber, if supported by the device
+        /// Do not wait for the response. If the device answers, the information
+        /// will be logged in ListenCommand
+        /// </summary>
+        /// <param name="controller"></param>
+        /// <param name="nodeId"></param>
+        public static void SendDeviceSpecificGet(Controller controller, byte nodeId)
+        {
+            logger.Info($"Send DEVICE_SPECIFIC_GET to node {nodeId}");
+            var cmd = new COMMAND_CLASS_MANUFACTURER_SPECIFIC_V2.DEVICE_SPECIFIC_GET();
+            cmd.properties1.deviceIdType = 0;
+            controller.SendData(nodeId, cmd, Common.txOptions);
         }
 
         public static string GetProfiles(List<ConfigItem> configList)
@@ -276,6 +290,7 @@ namespace hyper
         public static bool ReadConfiguration(Controller controller, byte nodeId, ConfigItem config, ref bool abort)
         {
             bool differenceFound = false;
+            GetVersion(controller, nodeId, ref abort);
             if (config.groups != null)
             {
                 foreach (var group in config.groups)
@@ -335,9 +350,49 @@ namespace hyper
 
         public static bool SetConfiguration(Controller controller, byte nodeId, ConfigItem config, ref bool abort)
         {
+            GetVersion(controller, nodeId, ref abort);
             bool configured = ConfigureAssociations(controller, nodeId, config, ref abort);
             configured = configured && ConfigureParameters(controller, nodeId, config, ref abort);
             return configured && ConfigureWakeup(controller, nodeId, config, ref abort);
+        }
+
+        enum LibraryType : byte
+        {
+            StaticController = 1,
+            Controller = 2,
+            EnhancedSlave = 3,
+            Slave = 4,
+            Installer = 5,
+            RoutingSlave = 6,
+            BridgeController = 7,
+            DeviceUnderTest = 8,
+            AV_Remote = 0x0A,
+            AV_Device = 0x0B,
+        }
+
+        internal static void GetVersion(Controller controller, byte nodeId, ref bool abort)
+        {
+            int retryCount = 3;
+            PerformWithRetries(ref retryCount, ref abort, () =>
+            {
+                var cmd = new COMMAND_CLASS_VERSION.VERSION_GET();
+                var result = controller.RequestData(nodeId, cmd, Common.txOptions, new COMMAND_CLASS_VERSION.VERSION_REPORT(), 5000);
+                if (result)
+                {
+                    var rpt = (COMMAND_CLASS_VERSION.VERSION_REPORT)result.Command;
+                    string libraryTypeName = "";
+                    if (Enum.IsDefined(typeof(LibraryType), rpt.zWaveLibraryType))
+                    {
+                        libraryTypeName = "(" + ((LibraryType)rpt.zWaveLibraryType).ToString() + ")";
+                    }
+                    Common.logger.Info($"version for node {nodeId}: "
+                        + $"zWaveLibraryType={rpt.zWaveLibraryType}{libraryTypeName}, "
+                        + $"zWaveProtocolVersion={rpt.zWaveProtocolVersion}.{rpt.zWaveProtocolSubVersion}, "
+                        + $"applicationVersion={rpt.applicationVersion}.{rpt.applicationSubVersion}");
+                    return true;
+                }
+                return false;
+            });
         }
 
         public static bool ConfigureAssociations(Controller controller, byte nodeId, ConfigItem config, ref bool abort)
