@@ -8,6 +8,8 @@
     groups:
     # send alarm
         1: 1
+        #2: 0 # send basic on/off
+        3: 1 # send TAMPER to controller
     config:
         # bitmask:
         # 2_1 Visual LED indications - Open/close = 1; 
@@ -31,6 +33,8 @@
     groups:
     # send alarm
         1: 1
+        #2: 0 # send basic on/off
+        3: 1 # send TAMPER to controller
     config:
         # bitmask:
         # 2_1 Visual LED indications - Open/close = 0;
@@ -335,33 +339,31 @@
     productId: 117 # (0x0075)
     profile: default # will be used if no profile is specified in the command
 
-# McoHome Technology Co., Ltd MH7H Water / Electrical Heating Thermostat
-# https://www.opensmarthouse.org/zwavedatabase/773
+# McoHome Technology Co., Ltd MH7H Water / Electrical Heating Thermostat V2
+# https://www.opensmarthouse.org/zwavedatabase/1369 # has wrong/old productTypeId
 -   deviceName: McoHome Technology Co., Ltd MH7H Water / Electrical Heating Thermostat
     manufacturerId: 351 #(015F)
-    productTypeId: 1810 # (0x712)
+    productTypeId: 1810 #(0x712)
     productId: 20738 #(5102)
     profile: default # will be used if no profile is specified in the command
     groups:
         1: 1 # Lifeline
         2: 1 # Switching Relays (sends BASIC_SET), send to controller
-        #3: 2 # Switching Relays (sends BASIC_SET)
     config:
         2_1: 1 # temp and hum. reporting (0:off, 1: difference only, 2: regular interval only, 3: both)
         4_2: 30 # Upload time interval regularly (in sec.) (10 to 65535, default 30)
         # 255_1: 85 # reset. Only way until now to exclude the device. the normal way did not work
 
-# McoHome Technology Co., Ltd MH7H Water / Electrical Heating Thermostat - with direct switching
-# https://www.opensmarthouse.org/zwavedatabase/773
+# McoHome Technology Co., Ltd MH7H Water / Electrical Heating Thermostat V2 - with direct switching
+# https://www.opensmarthouse.org/zwavedatabase/1369 # has wrong/old productTypeId
 -   deviceName: McoHome Technology Co., Ltd MH7H Water / Electrical Heating Thermostat
     manufacturerId: 351 #(015F)
-    productTypeId: 1810 # (0x712)
+    productTypeId: 1810 #(0x712)
     productId: 20738 #(5102)
     profile: rtr_control # switching a relais -- call with: config {nodeId} rtr_switching {relaisNodeId}
     groups:
         1: 1 # Lifeline
-        2: 1 # Switching Relays (sends BASIC_SET), send to controller
-        3: "{0}" # Switching Relays (sends BASIC_SET) -
+        2: 1, {0} # Switching Relays (sends BASIC_SET), send to controller and optionally another device
     config:
         2_1: 1 # temp and hum. reporting (0:off, 1: difference only, 2: regular interval only, 3: both)
         4_2: 30 # Upload time interval regularly (in sec.) (10 to 65535, default 30)
