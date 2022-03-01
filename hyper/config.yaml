@@ -150,6 +150,36 @@
         # 111_4: 3600
     wakeup: 3600
 
+# ZW100 Multisensor 6 1.12 battery in common area
+# https://www.cd-jackson.com/index.php/zwave/zwave-device-database/zwave-device-list/devicesummary/778
+# https://www.opensmarthouse.org/zwavedatabase/778
+-   deviceName: ZW100 Multisensor 6
+    manufacturerId: 134 # 0x0086
+    productTypeId: 2
+    productId: 100
+    profile: bw_common_area
+    groups:
+        1: 1
+    config:
+        # factory reset
+        #255_4: 1431655765
+        # Motion Sensor reset timeout
+        3_2: 600
+        # Motion sensor sensitivity, useful for some older devices
+        4_1: 5 # 5: max sensitivity, default but some devices always reset to 0
+        # Motion Sensor Triggered Command
+        5_1: 2
+        # sum of:
+        # Battery=1
+        # Ultraviolet=16
+        # Temperature=32
+        # Humidity=64
+        # Light=128
+        101_4: 1 # only battery if battery powered
+        # Group 1 Report Interval
+        # 111_4: 3600
+    wakeup: 3600
+
 # FGWP102 Metered Wall Plug Switch
 # https://www.cd-jackson.com/index.php/zwave/zwave-device-database/zwave-device-list/devicesummary/513
 -   deviceName: FGWP102 Metered Wall Plug Switch
