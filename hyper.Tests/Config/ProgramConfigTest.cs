@@ -84,9 +84,7 @@ namespace hyper.Tests.Config
             var programConfig = new ProgramConfig();
             programConfig.LoadFromFile();
             int[] actual = programConfig.GetIntListValueOrDefault("retryDelaysForBasic", "5");
-            Assert.AreEqual(0, actual.Length);
-
-
+            Assert.AreEqual(14, actual.Length);
         }
 
         [TestMethod]
