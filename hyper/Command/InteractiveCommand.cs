@@ -8,6 +8,7 @@ using hyper.Models;
 using hyper.Output;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -111,7 +112,8 @@ namespace hyper
             var debugRegex = new Regex(@"^debug\s*(false|true)");
             var lastEventsRegex = new Regex(@$"^show\s*({zeroTo255Regex})\s*({zeroTo255Regex})?\s*([a-zA-Z_]+)?");
             var multiRegex = new Regex(@$"^multi\s*({oneTo255Regex})\s*({zeroTo255Regex})\s*(false|true)");
-            var rtr_setpointRegex = new Regex(@$"^rtr_setpoint\s*({oneTo255Regex})\s+(\d+\.?\d*)");
+            var rtr_setpointRegex = new Regex(@$"^rtr_setpoint\s*({oneTo255Regex})\s*(\d+\.?\d*)?");
+            var rtr_modeRegex = new Regex(@$"^rtr_mode\s*({oneTo255Regex})\s*(\d+)?");
 
             Active = true;
             bool oneShot = args.Length > 0;
@@ -457,6 +459,9 @@ namespace hyper
                     case var setpointVal when rtr_setpointRegex.IsMatch(setpointVal):
                         ThermostatSetpoint(rtr_setpointRegex, setpointVal);
                         break;
+                    case var modeVal when rtr_modeRegex.IsMatch(modeVal):
+                        ThermostatMode(rtr_modeRegex, modeVal);
+                        break;
                     default:
                         Common.logger.Warn("unknown command - " + HelpHint);
                         break;
@@ -516,7 +521,8 @@ namespace hyper
             help.AppendLine("  replace nodeId [profile [param]]:    checks existing nodeId, then replaces the device, optionally using a device profile");
             help.AppendLine("  reset!:                              resets the stick");
             help.AppendLine("  restore!:                            restores from eeprom.bin in the hyper directory");
-            help.AppendLine("  rtr_setpoint nodeId {temperature}:   sets the thermostat setpoint in degrees Celcius");
+            help.AppendLine("  rtr_mode nodeId [mode]:              gets or sets the thermostat mode (1 is heating, 0 is off)");
+            help.AppendLine("  rtr_setpoint nodeId [temperature]:   gets or sets the thermostat setpoint in degrees Celcius");
             help.AppendLine("  show nodeId [count] [event]:         shows last events from the devices, optionally filtered. Example: show 2 10 battery_report");
             help.AppendLine("  wakeup nodeId:                       gets the wake up intervall of a device, in seconds");
             help.AppendLine("  wakeup nodeId value:                 sets the wake up intervall of a device, in seconds");
@@ -638,17 +644,48 @@ namespace hyper
                 .ContinueWith(t => inputManager.InjectCommand(newCmd));
         }
 
+        private void ThermostatMode(Regex rtr_modeRegex, string modeVal)
+        {
+            var match = rtr_modeRegex.Match(modeVal);
+            var val = match.Groups[1].Value;
+            var nodeId = byte.Parse(val);
+            val = match.Groups[2].Value;
+            if (string.IsNullOrEmpty(val))
+            {
+                bool success = Common.RequestThermostatMode(Program.controller, nodeId);
+                LogActionOutcome("get rtr_mode", nodeId, success);
+            }
+            else
+            {
+                byte value = 0;
+                if (byte.TryParse(val, out value))
+                {
+                    bool success = Common.ThermostatMode(Program.controller, nodeId, value);
+                    LogActionOutcome("rtr_mode", nodeId, success);
+                }
+            }
+        }
+
         private void ThermostatSetpoint(Regex rtr_setpointRegex, string setpointVal)
         {
             var match = rtr_setpointRegex.Match(setpointVal);
             var val = match.Groups[1].Value;
             var nodeId = byte.Parse(val);
             val = match.Groups[2].Value;
-            float value = 0;
-            if (float.TryParse(val, out value))
+            if (string.IsNullOrEmpty(val))
             {
-                bool success = Common.ThermostatSetpoint(Program.controller, nodeId, value);
-                LogActionOutcome("rtr_setpoint", nodeId, success);
+                bool success = Common.RequestThermostatSetpoint(Program.controller, nodeId);
+                LogActionOutcome("get rtr_setpoint", nodeId, success);
+            }
+            else
+            {
+                float value = 0;
+                //should not depend on the locale because it will be sent from alfred
+                if (float.TryParse(val, NumberStyles.Float, CultureInfo.InvariantCulture, out value))
+                {
+                    bool success = Common.ThermostatSetpoint(Program.controller, nodeId, value);
+                    LogActionOutcome("rtr_setpoint", nodeId, success);
+                }
             }
         }
 

@@ -848,14 +848,43 @@ namespace hyper
             return false;
         }
 
+        internal static bool RequestThermostatMode
+            (Controller controller, byte nodeId)
+        {
+            Common.logger.Info("Get Thermostat Mode for node {0}", nodeId);
+            var cmd = new COMMAND_CLASS_THERMOSTAT_MODE.THERMOSTAT_MODE_GET();
+            var sendDataResult = controller.SendData(nodeId, cmd, txOptions);
+            return sendDataResult.TransmitStatus == TransmitStatuses.CompleteOk;
+        }
+
+        internal static bool ThermostatMode(Controller controller, byte nodeId, byte value)
+        {
+            Common.logger.Info("Set Thermostat Mode for node {0} to value {1}", nodeId, value);
+            var cmd = new COMMAND_CLASS_THERMOSTAT_MODE.THERMOSTAT_MODE_SET();
+            cmd.properties1.mode = value;
+
+            var sendDataResult = controller.SendData(nodeId, cmd, txOptions);
+            return sendDataResult.TransmitStatus == TransmitStatuses.CompleteOk;
+        }
+
+        internal static bool RequestThermostatSetpoint(Controller controller, byte nodeId)
+        {
+            Common.logger.Info("Get Thermostat Setpoint for node {0}", nodeId);
+            var cmd = new COMMAND_CLASS_THERMOSTAT_SETPOINT_V3.THERMOSTAT_SETPOINT_GET();
+            const byte Heating = 1;
+            cmd.properties1.setpointType = Heating;
+            var sendDataResult = controller.SendData(nodeId, cmd, txOptions);
+            return sendDataResult.TransmitStatus == TransmitStatuses.CompleteOk;
+        }
+
         internal static bool ThermostatSetpoint(Controller controller, byte nodeId, float value)
         {
-            Common.logger.Info("ThermostatSetpoint node {0} with value {1}", nodeId, value);
-            var cmd = new COMMAND_CLASS_THERMOSTAT_SETPOINT_V3.THERMOSTAT_SETPOINT_SET();
             const byte Heating = 1;
             const byte Celcius = 0; //Fahrenheit = 1;
+            ThermostatMode(controller, nodeId, Heating);
+            Common.logger.Info("Set Thermostat Setpoint for node {0} to value {1}", nodeId, value);
+            var cmd = new COMMAND_CLASS_THERMOSTAT_SETPOINT_V3.THERMOSTAT_SETPOINT_SET();
             cmd.properties1.setpointType = Heating;
-
             cmd.properties2.precision = 1;
             cmd.properties2.scale = Celcius;
             cmd.properties2.size = 2; //short
