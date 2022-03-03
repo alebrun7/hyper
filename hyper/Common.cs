@@ -1036,8 +1036,9 @@ namespace hyper
         {
             var excludeNode = controller.ExcludeNode(Modes.NodeOptionHighPower | Modes.NodeOptionNetworkWide, 20000);
             nodeId = excludeNode.AddRemoveNode.Id;
+            logger.Info("ExclusionResult: State={0}", excludeNode.State);
             RemoveFromIncludedNodes(controller, nodeId);
-            return true;
+            return excludeNode.IsStateCompleted;
         }
 
         private static void AddToIncludedNodes(Controller controller, byte nodeId)

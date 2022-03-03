@@ -1,5 +1,6 @@
 ﻿using hyper.Command;
 using hyper.commands;
+using System.Threading;
 using ZWave.BasicApplication.Devices;
 
 namespace hyper
@@ -27,6 +28,7 @@ namespace hyper
             while (!nodeExcluded && !abort)
             {
                 Common.logger.Info("Could not exclude any node, trying again...");
+                Thread.Sleep(200);
                 nodeExcluded = Common.ExcludeNode(controller, out nodeId);
             }
 
