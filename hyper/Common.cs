@@ -451,6 +451,10 @@ namespace hyper
                         bool validated = PerformWithRetries(ref retryCount, ref abort, () =>
                         {
                             currentAssociations = GetAssociationsForGroup(controller, nodeId, groupIdentifier);
+                            if (currentAssociations == null)
+                            {
+                                return false;
+                            }
                             missing = expected.Except(currentAssociations);
                             tooMuch = currentAssociations.Except(expected);
                             return (missing.IsNullOrEmpty() && tooMuch.IsNullOrEmpty());
