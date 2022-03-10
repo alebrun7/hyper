@@ -180,6 +180,36 @@
         # 111_4: 3600
     wakeup: 3600
 
+# ZW100 Multisensor 6 1.12 battery with humidity report
+# https://www.cd-jackson.com/index.php/zwave/zwave-device-database/zwave-device-list/devicesummary/778
+# https://www.opensmarthouse.org/zwavedatabase/778
+-   deviceName: ZW100 Multisensor 6
+    manufacturerId: 134 # 0x0086
+    productTypeId: 2
+    productId: 100
+    profile: bw_humidity
+    groups:
+        1: 1
+    config:
+        # factory reset
+        #255_4: 1431655765
+        # Motion Sensor reset timeout
+        3_2: 25
+        # Motion sensor sensitivity, useful for some older devices
+        4_1: 5 # 5: max sensitivity, default but some devices always reset to 0
+        # Motion Sensor Triggered Command
+        5_1: 2
+        # sum of:
+        # Battery=1
+        # Ultraviolet=16
+        # Temperature=32
+        # Humidity=64
+        # Light=128
+        101_4: 65 # only battery and humidity
+        # Group 1 Report Interval
+        # 111_4: 3600
+    wakeup: 3600
+
 # FGWP102 Metered Wall Plug Switch
 # https://www.cd-jackson.com/index.php/zwave/zwave-device-database/zwave-device-list/devicesummary/513
 -   deviceName: FGWP102 Metered Wall Plug Switch
@@ -212,12 +242,39 @@
         # 3: reports  relay's  status  to  just  one  device,  Z-Wave network's main controller by default. It's not recommended to modify settings of this association group.
         3: 1
     config:
+        # always on
+        1_1: 1 # 0: device always on. default ist 1, normal operation
         # Immediate power report
         40_1: 90
         # Standard power load reporting (default is 15, 100 means off)
         42_1: 100
         #  Time  period  between  reports  on  power  load  and  energy  consumption (default 3600s, 65535 to disable)
         47_2: 65535
+        61_1: 9 #LED ring illumination colour when controlled device is on 9: off
+
+# FGWP101 Metered Wall Plug Switch, always on
+# https://www.cd-jackson.com/index.php/zwave/zwave-device-database/zwave-device-list/devicesummary/130
+# https://www.opensmarthouse.org/zwavedatabase/130
+-   deviceName: FGWP101 Metered Wall Plug Switch
+    manufacturerId: 271 # (0x10F)
+    productTypeId: 1536 # (0x600)
+    profile: ssd_alwayson # nur als Strommessung, immer an
+    groups:
+        # 1: is assigned to Plugs status - On / Off. Allows for sending control command to associated devices whenever the Plug is turned On or Off.
+        #1: 1
+        #2: 1
+        # 3: reports  relay's  status  to  just  one  device,  Z-Wave network's main controller by default. It's not recommended to modify settings of this association group.
+        3: 1
+    config:
+        # always on
+        1_1: 0 # 0: device always on. default ist 1, normal operation
+        # Immediate power report
+        40_1: 90
+        # Standard power load reporting (default is 15, 100 means off)
+        42_1: 100
+        #  Time  period  between  reports  on  power  load  and  energy  consumption (default 3600s, 65535 to disable)
+        47_2: 65535
+        61_1: 9 #LED ring illumination colour when controlled device is on 9: off
 
 # FGBS001 Universal Binary Sensor
 # https://www.cd-jackson.com/index.php/zwave/zwave-device-database/zwave-device-list/devicesummary/126

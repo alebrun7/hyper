@@ -7,4 +7,5 @@ dotnet publish -c Release --self-contained -r linux-arm -o ./publishlinux-arm /p
 if exist %sevenZ% %sevenZ% a -tzip publishlinux-arm.zip publishlinux-arm\*
 explorer .
 POPD
-PAUSE
+ECHO This window will close automatically in 60 seconds...
+ping -n 61 localhost > /nul
