@@ -377,8 +377,37 @@
         # Which reports need to send in Report group 3
         103_4: 0
 
+# ZW141 Nano Shutter
+# https://www.opensmarthouse.org/zwavedatabase/912
+-   deviceName: ZW141 Nano Shutter
+    manufacturerId: 134 # 0x86
+    productTypeId: 3
+    productId: 141 #(008D)
+    profile: default # will be used if no profile is specified in the command
+    groups:
+        1: 1
+    config:
+        80_1: 1 # When the state of Nano Shutter (turn on/off the load ) ischanged: 1: Send the Basic Report.
+        120_1: 0 # Set the external switch mode of S1. 0 = Unidentified mode (default)
+        121_1: 0 # Set the external switch mode of S2. 0 = Unidentified mode (default)
+
+# ZW141 Nano Shutter Version > 3.0
+# https://www.opensmarthouse.org/zwavedatabase/1151
+-   deviceName: ZW141 Nano Shutter
+    manufacturerId: 881 # 0x371
+    productTypeId: 3
+    productId: 141 #(008D)
+    profile: default # will be used if no profile is specified in the command
+    groups:
+        1: 1
+    config:
+        80_1: 1 # When the state of Nano Shutter (turn on/off the load ) ischanged: 1: Send the Basic Report.
+        120_1: 0 # Set the external switch mode of S1. 0 = Unidentified mode (default)
+        121_1: 0 # Set the external switch mode of S2. 0 = Unidentified mode (default)
+
 # TPS412 Touch Panel Switch 2 Channel
 # https://www.cd-jackson.com/index.php/zwave/zwave-device-database/zwave-device-list/devicesummary/429
+# https://www.opensmarthouse.org/zwavedatabase/429
 -   deviceName: TPS412 Touch Panel Switch 2 Channel
     manufacturerId: 351
     productTypeId: 16673
