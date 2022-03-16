@@ -7,9 +7,16 @@ namespace hyper.Helper
 {
     public class StartArguments
     {
+        public const string AutoPort = "auto";
+
         public StartArguments(string[] args)
         {
             var remainingArgs = args;
+            if (remainingArgs.Length == 0)
+            {
+                Port = AutoPort;
+                Valid = true;
+            }
             if ((remainingArgs.Length > 0) && remainingArgs[0].ToLower() == "-udpmultiplexer")
             {
                 StartUdpMultiplexer = true;

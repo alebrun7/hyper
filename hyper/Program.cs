@@ -99,7 +99,7 @@ namespace hyper
             bool initialized = false;
             bool simulationMode = false;
 
-            if (port == "auto")
+            if (port == StartArguments.AutoPort)
             {
                 //for easier debugging, not meant to be used in production
                 initialized = Common.InitControllerAuto(startUdpMultiplexer, out controller, out errorMessage);

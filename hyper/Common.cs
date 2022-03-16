@@ -149,7 +149,7 @@ namespace hyper
                 var multiplexer = new UDPMultiplexer(transportLayer.TransportClient);
                 multiplexer.Start();
             }
-
+            Common.logger.Info("Controller - Connected to Port: {0}", port);
             return true;
         }
 

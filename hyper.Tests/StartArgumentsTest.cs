@@ -13,10 +13,11 @@ namespace hyper.Tests
     public class StartArgumentsTest
     {
         [TestMethod]
-        public void Ctor_WithoutArgs_NotValid()
+        public void Ctor_WithoutArgs_PortAuto()
         {
             var startArgs = new StartArguments(new string[0]);
-            Assert.IsFalse(startArgs.Valid);
+            Assert.IsTrue(startArgs.Valid);
+            Assert.AreEqual(StartArguments.AutoPort, startArgs.Port);
         }
 
         [TestMethod]
