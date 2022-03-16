@@ -8,6 +8,7 @@ namespace hyper.Helper
     public class StartArguments
     {
         public const string AutoPort = "auto";
+        public const string SimulatePort = "simulate";
 
         public StartArguments(string[] args)
         {

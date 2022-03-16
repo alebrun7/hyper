@@ -25,6 +25,7 @@ namespace hyper
     {
         private const string RETRYDELAYSFORBASIC_DEFAULT = "";
         private const string RETRYDELAYSFORBASIC_KEY = "retryDelaysForBasic";
+        private const string RAZBERRY_PORT = "/dev/ttyAMA0";
 
         private ICommand currentCommand = null;
 
@@ -32,6 +33,7 @@ namespace hyper
         private string args;
         private InputManager inputManager;
         private EventDAO eventDao = new EventDAO();
+        private string port;
         private bool simulationMode;
         private static readonly string oneTo255Regex = @"\b(?:[1-9]|[1-8][0-9]|9[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b";
         private static readonly string zeroTo255Regex = @"\b(?:[0-9]|[1-8][0-9]|9[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\b";
@@ -41,11 +43,12 @@ namespace hyper
         //it is not thread safe, but the commands are always executed in the same thread
         IDictionary<byte, byte> basicRequestNumbers = new Dictionary<byte, byte>();
 
-        public InteractiveCommand(string args, InputManager inputManager, bool simulationMode)
+        public InteractiveCommand(string args, InputManager inputManager, string port)
         {
             this.args = args;
             this.inputManager = inputManager;
-            this.simulationMode = simulationMode;
+            this.port = port;
+            this.simulationMode = (port == StartArguments.SimulatePort);
         }
 
         public bool Active { get; private set; } = false;
@@ -220,6 +223,11 @@ namespace hyper
                         }
                     case "backup":
                         {
+                            if (port == RAZBERRY_PORT)
+                            {
+                                Common.logger.Error($"backup not possible with port {port}");
+                                break;
+                            }
                             blockExit = true;
                             var result = Common.ReadNVRam(Program.controller, out byte[] eeprom);
                             if (result)
@@ -232,6 +240,11 @@ namespace hyper
                         }
                     case "restore!":
                         {
+                            if (port == RAZBERRY_PORT)
+                            {
+                                Common.logger.Error($"restore not possible with port {port}");
+                                break;
+                            }
                             blockExit = true;
                             byte[] read = File.ReadAllBytes("eeprom.bin");
                             var result = Common.WriteNVRam(Program.controller, read);

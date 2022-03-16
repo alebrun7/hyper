@@ -62,6 +62,7 @@ namespace hyper
                 if (initialized)
                 {
                     File.WriteAllText(lastportfilename, port);
+                    errorMessage = port;
                     return true;
                 }
             }

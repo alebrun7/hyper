@@ -103,8 +103,12 @@ namespace hyper
             {
                 //for easier debugging, not meant to be used in production
                 initialized = Common.InitControllerAuto(startUdpMultiplexer, out controller, out errorMessage);
+                if (initialized)
+                {
+                    port = errorMessage;
+                }
             }
-            else if (port == "simulate")
+            else if (port == StartArguments.SimulatePort)
             {
                 simulationMode = true;
                 initialized = true;
@@ -127,7 +131,7 @@ namespace hyper
                 Common.logger.Info("-----------------------------------");
             }
 
-            currentCommand = new InteractiveCommand(startArgs.Command, inputManager, simulationMode);
+            currentCommand = new InteractiveCommand(startArgs.Command, inputManager, port);
             currentCommand.Start();
 
             /*if (args[1] == "r" || args[1] == "replace" || args[1] == "c" || args[1] == "config")
