@@ -166,6 +166,32 @@ namespace hyper.Helper.Extension
                         eventType = Enums.EventKey.THERMOSTAT_MODE;
                         return true;
                     }
+                case COMMAND_CLASS_MULTI_CHANNEL_V4.MULTI_CHANNEL_CMD_ENCAP multiChannelReport:
+                    {
+                        eventType = Enums.EventKey.UNKNOWN;
+                        if (multiChannelReport.commandClass == COMMAND_CLASS_BASIC_V2.ID
+                            && multiChannelReport.command == COMMAND_CLASS_BASIC_V2.BASIC_REPORT.ID)
+                        {
+                            if (multiChannelReport.properties2.destinationEndPoint == 1)
+                            {
+                                eventType = Enums.EventKey.CHANNEL_1_STATE;
+                            }
+                            else if (multiChannelReport.properties2.destinationEndPoint == 2)
+                            {
+                                eventType = Enums.EventKey.CHANNEL_2_STATE;
+                            }
+                        }
+                        if (eventType == Enums.EventKey.UNKNOWN)
+                        {
+                            floatVal = -1;
+                            return false;
+                        }
+                        else
+                        {
+                            floatVal = multiChannelReport.parameter[0] == 255 ? 1.0f : 0.0f;
+                            return true;
+                        }
+                    }
                 default:
                     floatVal = -1;
                     eventType = Enums.EventKey.UNKNOWN;

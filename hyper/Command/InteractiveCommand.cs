@@ -276,6 +276,11 @@ namespace hyper
                         }
                     case var multiVal when multiRegex.IsMatch(multiVal):
                         {
+                            if (simulationMode)
+                            {
+                                Common.logger.Info("Simulation Mode, ignoring command");
+                                break;
+                            }
                             var match = multiRegex.Match(multiVal);
                             var nodeId = byte.Parse(match.Groups[1].Value);
                             var endpoint = byte.Parse(match.Groups[2].Value);
@@ -526,7 +531,7 @@ namespace hyper
             help.AppendLine("  show nodeId [count] [event]:         shows last events from the devices, optionally filtered. Example: show 2 10 battery_report");
             help.AppendLine("  wakeup nodeId:                       gets the wake up intervall of a device, in seconds");
             help.AppendLine("  wakeup nodeId value:                 sets the wake up intervall of a device, in seconds");
-            help.AppendLine("  simulate nodeId {bin|bw|ft|mk} {true|false}: simulates a sensor event");
+            help.AppendLine("  simulate nodeId {bin|bw|ft|mk|t} [channel] {true|false}: simulates a sensor event");
             help.AppendLine("  stop:                                in ClientTCP: stops the current command, or hyper if no command is executing. Same as Ctrl+C in hyper");
             Common.logger.Info(help.ToString());
         }

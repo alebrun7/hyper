@@ -25,6 +25,8 @@
             THERMOSTAT_SETPOINT,
             THERMOSTAT_OPERATING_STATE,
             THERMOSTAT_MODE,
+            CHANNEL_1_STATE,
+            CHANNEL_2_STATE,
         }
 
         //public static EventKey GetEventTypeByMultilevelType(byte eventValue)

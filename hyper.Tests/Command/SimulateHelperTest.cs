@@ -99,6 +99,53 @@ namespace hyper.Tests.Command
         }
 
         [TestMethod]
+        public void SimulateT_Channel1_On()
+        {
+            var helper = new SimulateHelper("simulate 3 t 1 true", dummyController);
+            helper.CreateCommand();
+
+            CheckMultiChannelCommand(helper.Command, 1, true);
+        }
+        [TestMethod]
+        public void SimulateT_Channel1_Off()
+        {
+            var helper = new SimulateHelper("simulate 3 t 1 false", dummyController);
+            helper.CreateCommand();
+
+            CheckMultiChannelCommand(helper.Command, 1, false);
+        }
+        [TestMethod]
+        public void SimulateT_Channel2_On()
+        {
+            var helper = new SimulateHelper("simulate 3 t 2 true", dummyController);
+            helper.CreateCommand();
+
+            CheckMultiChannelCommand(helper.Command, 2, true);
+        }
+        [TestMethod]
+        public void SimulateT_Channel2_Off()
+        {
+            var helper = new SimulateHelper("simulate 3 t 2 false", dummyController);
+            helper.CreateCommand();
+
+            CheckMultiChannelCommand(helper.Command, 2, false);
+        }
+
+        private static void CheckMultiChannelCommand(object command, byte channel, bool value)
+        {
+            Assert.IsNotNull(command);
+            Assert.AreEqual(typeof(COMMAND_CLASS_MULTI_CHANNEL_V4.MULTI_CHANNEL_CMD_ENCAP), command.GetType());
+            var cmd = (COMMAND_CLASS_MULTI_CHANNEL_V4.MULTI_CHANNEL_CMD_ENCAP)command;
+            Assert.AreEqual(channel, cmd.properties1.sourceEndPoint);
+            Assert.AreEqual(channel, cmd.properties2.destinationEndPoint);
+            Assert.AreEqual(COMMAND_CLASS_BASIC_V2.ID, cmd.commandClass);
+            Assert.AreEqual(COMMAND_CLASS_BASIC_V2.BASIC_REPORT.ID, cmd.command);
+            Assert.AreEqual(1, cmd.parameter.Count);
+            int expectedParameter = value ? 255 : 0;
+            Assert.AreEqual(expectedParameter, cmd.parameter[0]);
+        }
+
+        [TestMethod]
         public void SimulateOn()
         {
             var helper = new SimulateHelper("simulate true", dummyController);

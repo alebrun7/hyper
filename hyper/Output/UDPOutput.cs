@@ -120,7 +120,11 @@ namespace hyper.Output
             }
             buffer = nodeId.Reverse().Concat(commandClass.Reverse()).Concat(instance).Concat(index).Concat(values.Reverse()).ToArray();
             var keyValue = command.GetKeyValue(out Enums.EventKey eventKey, out float eventValue);
-            if (eventKey != Enums.EventKey.UNKNOWN)
+            //touch panel sends BASIC_SET and BASIC_REPORT too, but MULTICHANNEL has more information and was
+            //previously always sent to alfred as UNKNOWN
+            if (eventKey != Enums.EventKey.UNKNOWN
+                && eventKey != Enums.EventKey.CHANNEL_1_STATE
+                && eventKey != Enums.EventKey.CHANNEL_2_STATE)
             {
                 if (!eventMap.ContainsKey(srcNodeId))
                 {

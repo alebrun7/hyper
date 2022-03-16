@@ -1,4 +1,5 @@
-﻿using hyper.Helper;
+﻿using hyper.Command;
+using hyper.Helper;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -120,6 +121,42 @@ namespace hyper.Tests.Helper.Extension
             Assert.IsTrue(recognized);
             Assert.AreEqual(Enums.EventKey.STATE_ON, eventType);
             Assert.AreEqual(0, floatVal);
+        }
+
+        [TestMethod]
+        public void GetKeyValue_Channel1_On()
+        {
+           var cmd = SimulateHelper.CreateMultiChannelBasicReportEncap("1", true);
+
+            bool recognized = cmd.GetKeyValue(out eventType, out floatVal);
+
+            Assert.IsTrue(recognized);
+            Assert.AreEqual(Enums.EventKey.CHANNEL_1_STATE, eventType);
+            Assert.AreEqual(1, floatVal);
+        }
+
+        [TestMethod]
+        public void GetKeyValue_Channel2_Off()
+        {
+            var cmd = SimulateHelper.CreateMultiChannelBasicReportEncap("2", false);
+
+            bool recognized = cmd.GetKeyValue(out eventType, out floatVal);
+
+            Assert.IsTrue(recognized);
+            Assert.AreEqual(Enums.EventKey.CHANNEL_2_STATE, eventType);
+            Assert.AreEqual(0, floatVal);
+        }
+
+        [TestMethod]
+        public void GetKeyValue_WrongChannel_NotRecognized()
+        {
+            var cmd = SimulateHelper.CreateMultiChannelBasicReportEncap("3", false);
+
+            bool recognized = cmd.GetKeyValue(out eventType, out floatVal);
+
+            Assert.IsFalse(recognized);
+            Assert.AreEqual(Enums.EventKey.UNKNOWN, eventType);
+            Assert.AreEqual(-1, floatVal);
         }
 
         private static COMMAND_CLASS_NOTIFICATION_V8.NOTIFICATION_REPORT NewNotificationReport(byte type, byte mevent)
