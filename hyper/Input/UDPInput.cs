@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using ZWave.CommandClasses;
 
 namespace hyper.Input
 {
@@ -44,15 +45,26 @@ namespace hyper.Input
                             var nodeId = BitConverter.ToInt16(bytes.Skip(0).Take(2).Reverse().ToArray());
                             var commandClass = BitConverter.ToInt16(bytes.Skip(2).Take(2).Reverse().ToArray());
                             var endpoint = BitConverter.ToInt16(bytes.Skip(4).Take(2).Reverse().ToArray());
-                            var value = BitConverter.ToBoolean(bytes.Skip(8).Take(1).ToArray());
-                            Common.logger.Info($"node id: {nodeId} - command class: {commandClass} - endpoint: {endpoint} - value: {value}");
-                            if (endpoint > 1)
+                            if (commandClass == COMMAND_CLASS_THERMOSTAT_SETPOINT_V3.ID)
                             {
-                                lock (_syncObj) messageQueue.Add($"multi {nodeId} {endpoint - 1} {value}");
+                                //for this command class we need two bytes for the value
+                                var value = BitConverter.ToInt16(bytes.Skip(8).Take(2).Reverse().ToArray());
+                                Common.logger.Info($"node id: {nodeId} - command class: {commandClass} - endpoint: {endpoint} - value: {value}");
+                                float temperature = value / 10f; //Z-Wave convention: float as short with precision 1
+                                lock (_syncObj) messageQueue.Add($"rtr_setpoint {nodeId} {temperature}");
                             }
                             else
                             {
-                                lock (_syncObj) messageQueue.Add($"basic {nodeId} {value}");
+                                var value = BitConverter.ToBoolean(bytes.Skip(8).Take(1).ToArray());
+                                Common.logger.Info($"node id: {nodeId} - command class: {commandClass} - endpoint: {endpoint} - value: {value}");
+                                if (endpoint > 1)
+                                {
+                                    lock (_syncObj) messageQueue.Add($"multi {nodeId} {endpoint - 1} {value}");
+                                }
+                                else
+                                {
+                                    lock (_syncObj) messageQueue.Add($"basic {nodeId} {value}");
+                                }
                             }
                         }
 

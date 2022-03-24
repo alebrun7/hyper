@@ -475,9 +475,19 @@ namespace hyper
                             break;
                         }
                     case var setpointVal when rtr_setpointRegex.IsMatch(setpointVal):
+                        if (simulationMode)
+                        {
+                            Common.logger.Info("Simulation Mode, ignoring command");
+                            break;
+                        }
                         ThermostatSetpoint(rtr_setpointRegex, setpointVal);
                         break;
                     case var modeVal when rtr_modeRegex.IsMatch(modeVal):
+                        if (simulationMode)
+                        {
+                            Common.logger.Info("Simulation Mode, ignoring command");
+                            break;
+                        }
                         ThermostatMode(rtr_modeRegex, modeVal);
                         break;
                     default:
