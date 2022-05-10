@@ -120,6 +120,10 @@ namespace hyper
                     _controller.GetControllerCapabilities();
                     _controller.GetSucNodeId();
                     _controller.MemoryGetId();
+
+                    Common.logger.Info("AddSubstituteManager LoggingCrc16EncapManager");
+                    _controller.SessionClient.AddSubstituteManager(new LoggingCrc16EncapManager());
+
                     //      Common.logger.Info("Initialization done!");
                     //  Common.logger.Info("Included Nodes: " + string.Join(", ", controller.IncludedNodes));
                 }
