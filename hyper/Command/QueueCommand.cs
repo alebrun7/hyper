@@ -28,6 +28,7 @@ namespace hyper
         private InputManager inputManager;
         private EventDAO eventDao = new EventDAO();
         private readonly object lockObject = new object();
+        private Dictionary<byte, DateTime> lastBatteryTimes = new Dictionary<byte, DateTime>();
 
         public static bool IsMatch(string cmd)
         {
@@ -163,12 +164,7 @@ namespace hyper
                             var commandsPresent = nodeToCommandMap.TryGetValue(x.SrcNodeId, out SortedSet<string> commands);
                             if (!commandsPresent)
                             {
-                                //Common.logger.Warn($"no commands for {x.SrcNodeId}; check battery if needed");
-                                //var lastDate = eventDao.GetLastEvent(typeof(COMMAND_CLASS_BATTERY.BATTERY_REPORT).Name, x.SrcNodeId);
-                                //if ((DateTime.Now - lastDate).TotalHours >= 1)
-                                {
-                                    inputManager.InjectCommand($"battery {x.SrcNodeId}");
-                                }
+                                RequestBatteryIfNeeded(x.SrcNodeId);
                                 return;
                             }
 
@@ -194,12 +190,7 @@ namespace hyper
                 var commandsPresent = nodeToCommandMap.TryGetValue(r.NodeId, out SortedSet<string> commands);
                 if (!commandsPresent)
                 {
-                    //Common.logger.Warn($"no commands for {r.NodeId}; check battery if needed");
-                    var lastDate = eventDao.GetLastEvent(typeof(COMMAND_CLASS_BATTERY.BATTERY_REPORT).Name, r.NodeId);
-                    if ((DateTime.Now - lastDate).TotalHours >= 1)
-                    {
-                        inputManager.InjectCommand($"battery {r.NodeId}");
-                    }
+                    RequestBatteryIfNeeded(r.NodeId);
                     return;
                 }
 
@@ -228,6 +219,41 @@ namespace hyper
             controllerListener.WaitCompletedSignal();
             //Active = false;
             Common.logger.Info("Listening done!");
+            return true;
+        }
+
+        private void RequestBatteryIfNeeded(byte nodeId)
+        {
+            if (NeedsBatteryValue(nodeId))
+            {
+                inputManager.InjectCommand($"battery {nodeId}");
+                UpdateLastBatteryTime(nodeId);
+            }
+            else
+            {
+                Common.logger.Info($"id: {nodeId} - battery value not needed");
+            }
+        }
+
+        private void UpdateLastBatteryTime(byte srcNodeId)
+        {
+            lastBatteryTimes[srcNodeId] = DateTime.Now;
+        }
+
+        /// <summary>
+        /// Checks if the last battery query for the device is old enough
+        /// Previous code checked in the database, but it is too slow, the device often goes to sleep in the meantime.
+        /// </summary>
+        /// <param name="srcNodeId"></param>
+        /// <returns></returns>
+        private bool NeedsBatteryValue(byte srcNodeId)
+        {
+            DateTime lastTime;
+            if (lastBatteryTimes.TryGetValue(srcNodeId, out lastTime))
+            {
+                var age = DateTime.Now - lastTime;
+                return age > new TimeSpan(12, 0, 0); //twelve hours;
+            }
             return true;
         }
 
