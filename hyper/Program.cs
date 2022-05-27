@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Utils;
 using ZWave.BasicApplication.Devices;
 
 namespace hyper
@@ -127,7 +128,10 @@ namespace hyper
             {
                 Program.controller = controller;
                 Common.logger.Info("Version: {0}", controller.Version);
-                Common.logger.Info("Included nodes: {0}", controller.IncludedNodes.Length);
+                // The HomeId identifying the z-wave network.
+                // it should be unique for each controller.
+                Common.logger.Info("HomeId: {0}", Tools.GetHex(controller.HomeId));
+                InteractiveCommand.LogIncludedNodes();
                 Common.logger.Info("-----------------------------------");
             }
 

@@ -205,17 +205,8 @@ namespace hyper
                             break;
                         }
                     case "included":
-                        {
-                            if (Program.controller != null)
-                            {
-                                Common.logger.Info("included nodes: " + string.Join(", ", Program.controller.IncludedNodes));
-                            }
-                            else
-                            {
-                                Common.logger.Warn("included nodes not available in simulation mode");
-                            }
-                            break;
-                        }
+                        LogIncludedNodes();
+                        break;
                     case "exclude":
                         {
                             currentCommand = new ExcludeCommand(Program.controller);
@@ -517,6 +508,19 @@ namespace hyper
             listenComand.Stop();
             Common.logger.Info("goodby master...");
             return true;
+        }
+
+        public static void LogIncludedNodes()
+        {
+            if (Program.controller != null)
+            {
+                var nodes = string.Join(", ", Program.controller.IncludedNodes);
+                Common.logger.Info("Included nodes ({0}): {1}", Program.controller.IncludedNodes.Length, nodes);
+            }
+            else
+            {
+                Common.logger.Warn("included nodes not available in simulation mode");
+            }
         }
 
         private static void ShowProfiles()
