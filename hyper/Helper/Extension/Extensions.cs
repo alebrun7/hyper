@@ -192,6 +192,12 @@ namespace hyper.Helper.Extension
                             return true;
                         }
                     }
+                case COMMAND_CLASS_CENTRAL_SCENE_V3.CENTRAL_SCENE_NOTIFICATION notification:
+                    {
+                        floatVal = notification.sceneNumber;
+                        eventType = Enums.EventKey.SCENE;
+                        return true;
+                    }
                 default:
                     floatVal = -1;
                     eventType = Enums.EventKey.UNKNOWN;

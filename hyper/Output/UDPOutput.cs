@@ -120,11 +120,7 @@ namespace hyper.Output
             }
             buffer = nodeId.Reverse().Concat(commandClass.Reverse()).Concat(instance).Concat(index).Concat(values.Reverse()).ToArray();
             var keyValue = command.GetKeyValue(out Enums.EventKey eventKey, out float eventValue);
-            //touch panel sends BASIC_SET and BASIC_REPORT too, but MULTICHANNEL has more information and was
-            //previously always sent to alfred as UNKNOWN
-            if (eventKey != Enums.EventKey.UNKNOWN
-                && eventKey != Enums.EventKey.CHANNEL_1_STATE
-                && eventKey != Enums.EventKey.CHANNEL_2_STATE)
+            if (ShouldCheckForSameMessage(eventKey))
             {
                 if (!eventMap.ContainsKey(srcNodeId))
                 {
@@ -158,6 +154,21 @@ namespace hyper.Output
             var datagram = ByteArrayToString(buffer);
             logger.Debug("UDPOutput: send " + datagram);
             Send(buffer);
+        }
+
+        private static bool ShouldCheckForSameMessage(Enums.EventKey eventKey)
+        {
+            //touch panel sends BASIC_SET and BASIC_REPORT too, but MULTICHANNEL has more information and was
+            //previously always sent to alfred as UNKNOWN, now as CHANNEL_1_STATE and CHANNEL_2_STATE
+
+            //NanoMote sends BATTERY first, then BASIC, then SCENE
+            //normally battery is not 0 to 4, so there is no problem.
+            //nevertheless, BASIC 1 and SCENE 1 could conflict, so better ignore SCENE here
+
+            return eventKey != Enums.EventKey.UNKNOWN
+                && eventKey != Enums.EventKey.CHANNEL_1_STATE
+                && eventKey != Enums.EventKey.CHANNEL_2_STATE
+                && eventKey != Enums.EventKey.SCENE;
         }
 
         private void Send(byte[] buffer)

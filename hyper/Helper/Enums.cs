@@ -27,6 +27,7 @@
             THERMOSTAT_MODE,
             CHANNEL_1_STATE,
             CHANNEL_2_STATE,
+            SCENE,
         }
 
         //public static EventKey GetEventTypeByMultilevelType(byte eventValue)

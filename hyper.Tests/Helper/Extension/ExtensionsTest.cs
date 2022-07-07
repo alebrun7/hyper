@@ -159,6 +159,20 @@ namespace hyper.Tests.Helper.Extension
             Assert.AreEqual(-1, floatVal);
         }
 
+        [TestMethod]
+        public void GetKeyValue_Scene_Recognized()
+        {
+            var cmd = new COMMAND_CLASS_CENTRAL_SCENE_V3.CENTRAL_SCENE_NOTIFICATION();
+            cmd.sceneNumber = 1;
+            cmd.properties1.keyAttributes = 0; //for NanoMote: Key Pressed
+
+            bool recognized = cmd.GetKeyValue(out eventType, out floatVal);
+
+            Assert.IsTrue(recognized);
+            Assert.AreEqual(Enums.EventKey.SCENE, eventType);
+            Assert.AreEqual(1, floatVal);
+        }
+
         private static COMMAND_CLASS_NOTIFICATION_V8.NOTIFICATION_REPORT NewNotificationReport(byte type, byte mevent)
         {
             var cmd = new COMMAND_CLASS_NOTIFICATION_V8.NOTIFICATION_REPORT();
