@@ -487,6 +487,19 @@
     productId: 117 # (0x0075)
     profile: default # will be used if no profile is specified in the command
 
+# Aeotec NanoMote Quad
+# https://www.opensmarthouse.org/zwavedatabase/1006
+-   deviceName: Aeotec NanoMote Quad ZWA003
+    manufacturerId: 881 #(0x371)
+    productTypeId: 2 # (0x02)
+    productId: 3 # (0x0003)
+    profile: default # will be used if no profile is specified in the command
+    groups:
+        2: 1 # send basic (255 and 0 alternatively ) when button 1 is pressed
+        4: 1 # send basic (255 and 0 alternatively ) when button 2 is pressed
+        6: 1 # send basic (255 and 0 alternatively ) when button 3 is pressed
+        8: 1 # send basic (255 and 0 alternatively ) when button 4 is pressed (the middle button)
+
 # McoHome Technology Co., Ltd MH7H Water / Electrical Heating Thermostat V2
 # https://www.opensmarthouse.org/zwavedatabase/1369 # has wrong/old productTypeId
 -   deviceName: McoHome Technology Co., Ltd MH7H Water / Electrical Heating Thermostat
