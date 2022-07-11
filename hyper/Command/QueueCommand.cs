@@ -252,7 +252,8 @@ namespace hyper
             if (lastBatteryTimes.TryGetValue(srcNodeId, out lastTime))
             {
                 var age = DateTime.Now - lastTime;
-                return age > new TimeSpan(12, 0, 0); //twelve hours;
+                //17 hours ist slighty smaller than the common 18 hours wakeup interval
+                return age > new TimeSpan(17, 0, 0); //seventeen hours;
             }
             return true;
         }
