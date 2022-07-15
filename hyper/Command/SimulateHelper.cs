@@ -13,13 +13,15 @@ namespace hyper.Command
         private static Regex simulateRegex = new Regex(
             @$"^simulate\s+({BaseCommand.OneTo255Regex})\s+(bin|bw|ft|mk|t)\s*(1|2)?\s*(false|true)");
         private static Regex simulateOnOffRegex = new Regex(@$"^simulate\s+(false|true)"); //simulate true => simulation mode on
+        private static Regex simulateSceneRegex = new Regex(
+            @$"^simulate\s+({BaseCommand.OneTo255Regex})\s+(scene)\s*([1-4])\s*$");
 
         private Match match;
         private bool hasController;
 
         public static bool MatchesSimulate(string simulateVal)
         {
-            return simulateRegex.IsMatch(simulateVal);
+            return simulateRegex.IsMatch(simulateVal) || simulateSceneRegex.IsMatch(simulateVal);
         }
 
         public static bool MatchesSimulateOnOff(string command)
@@ -31,6 +33,10 @@ namespace hyper.Command
         {
             if (simulateRegex.IsMatch(simulateVal)) {
                 match = simulateRegex.Match(simulateVal);
+            }
+            else if (simulateSceneRegex.IsMatch(simulateVal))
+            {
+                match = simulateSceneRegex.Match(simulateVal);
             }
             else
             {
@@ -45,9 +51,9 @@ namespace hyper.Command
         public void CreateCommand()
         {
             NodeId = byte.Parse(match.Groups[1].Value);
-            var type = match.Groups[2].Value; //bin,bw,mk
-            var endpointStr = match.Groups[3].Value;
-            var value = bool.Parse(match.Groups[4].Value);
+            var type = match.Groups[2].Value; //bin,bw,mk (or scene)
+            var endpointStr = match.Groups[3].Value; // or sceneNumber
+            var value = match.Groups.Count > 4 ? bool.Parse(match.Groups[4].Value) : false;
 
             //command is always lower case
             switch (type)
@@ -77,6 +83,17 @@ namespace hyper.Command
                     break;
                 case "t": //TPS412
                     Command = CreateMultiChannelBasicReportEncap(endpointStr, value);
+                    break;
+                case "scene":
+                    Command = new COMMAND_CLASS_CENTRAL_SCENE_V3.CENTRAL_SCENE_NOTIFICATION()
+                    {
+                        sequenceNumber = 0, //normally incremented for each message
+                        sceneNumber = byte.Parse(endpointStr),
+                        properties1 = new COMMAND_CLASS_CENTRAL_SCENE_V3.CENTRAL_SCENE_NOTIFICATION.Tproperties1
+                        {
+                            slowRefresh = 1
+                        }
+                    };
                     break;
                 default:
                     Common.logger.Error($"simulate: type {type} not recognized!");

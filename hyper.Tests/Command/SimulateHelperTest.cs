@@ -131,6 +131,41 @@ namespace hyper.Tests.Command
             CheckMultiChannelCommand(helper.Command, 2, false);
         }
 
+        [TestMethod]
+        public void SimulateScene_Scene1to4_Recognized()
+        {
+            for (int sceneNumber = 1; sceneNumber < 5; ++sceneNumber)
+            {
+                string command = $"simulate 3 scene {sceneNumber}";
+                Assert.IsTrue(SimulateHelper.MatchesSimulate(command));
+            }
+        }
+
+        [TestMethod]
+        public void SimulateScene_Scene1to4_CommandGenerated()
+        {
+            for (int sceneNumber = 1; sceneNumber < 5; ++sceneNumber)
+            {
+                string command = $"simulate 3 scene {sceneNumber}";
+                Assert.IsTrue(SimulateHelper.MatchesSimulate(command));
+
+                var helper = new SimulateHelper(command, dummyController);
+                helper.CreateCommand();
+
+                CheckCentralSceneCommand(helper.Command, sceneNumber);
+            }
+        }
+
+        private void CheckCentralSceneCommand(object command, int sceneNumber)
+        {
+            Assert.IsNotNull(command);
+            Assert.AreEqual(typeof(COMMAND_CLASS_CENTRAL_SCENE_V3.CENTRAL_SCENE_NOTIFICATION), command.GetType());
+            var cmd = (COMMAND_CLASS_CENTRAL_SCENE_V3.CENTRAL_SCENE_NOTIFICATION)command;
+
+            Assert.AreEqual(sceneNumber, cmd.sceneNumber, $"sceneId={sceneNumber}");
+            Assert.AreEqual(1, cmd.properties1.slowRefresh, $"sceneId={sceneNumber}"); //like NanoMote
+        }
+
         private static void CheckMultiChannelCommand(object command, byte channel, bool value)
         {
             Assert.IsNotNull(command);
