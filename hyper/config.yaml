@@ -500,6 +500,17 @@
         6: 1 # send basic (255 and 0 alternatively ) when button 3 is pressed
         8: 1 # send basic (255 and 0 alternatively ) when button 4 is pressed (the middle button)
 
+# Cyrus SZENEN-CONTROLLER
+# https://www.opensmarthouse.org/zwavedatabase/488
+-   deviceName: Cyrus SmartHome Szenen-Controller
+    manufacturerId: 520 # (0x0208) Hank
+    productTypeId: 512 # (0x0200) #könnte auch 513 sein
+    productId: 9 # (0x0009)
+    profile: default
+    groups:
+        1: 1 # sends Scene Central and Battery
+        2: 1 # send BASIC_SET
+
 # McoHome Technology Co., Ltd MH7H Water / Electrical Heating Thermostat V2
 # https://www.opensmarthouse.org/zwavedatabase/1369 # has wrong/old productTypeId
 -   deviceName: McoHome Technology Co., Ltd MH7H Water / Electrical Heating Thermostat
