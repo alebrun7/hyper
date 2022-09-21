@@ -1,6 +1,7 @@
 ﻿using hyper.Command;
 using hyper.Helper;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Text.RegularExpressions;
 using ZWave.CommandClasses;
 
@@ -154,6 +155,35 @@ namespace hyper.Tests.Command
 
                 CheckCentralSceneCommand(helper.Command, sceneNumber);
             }
+        }
+
+        [TestMethod]
+        public void SimulateBattery_Recognized()
+        {
+            foreach (byte value in BatteryValues())
+            {
+                string command = $"simulate 3 battery {value}";
+                Assert.IsTrue(SimulateHelper.MatchesSimulate(command));
+
+                var helper = new SimulateHelper(command, dummyController);
+                helper.CreateCommand();
+                CheckBatteryCommand(helper.Command, value);
+            }
+
+
+        }
+
+        private void CheckBatteryCommand(object command, byte value)
+        {
+            Assert.IsNotNull(command);
+            Assert.AreEqual(typeof(COMMAND_CLASS_BATTERY.BATTERY_REPORT), command.GetType());
+            var cmd = (COMMAND_CLASS_BATTERY.BATTERY_REPORT)command;
+            Assert.AreEqual(value, cmd.batteryLevel);
+        }
+
+        private static byte[] BatteryValues()
+        {
+            return new byte[] { 0, 1, 10, 20, 50, 99, 100, 255 };
         }
 
         private void CheckCentralSceneCommand(object command, int sceneNumber)

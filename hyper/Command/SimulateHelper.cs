@@ -15,13 +15,20 @@ namespace hyper.Command
         private static Regex simulateOnOffRegex = new Regex(@$"^simulate\s+(false|true)"); //simulate true => simulation mode on
         private static Regex simulateSceneRegex = new Regex(
             @$"^simulate\s+({BaseCommand.OneTo255Regex})\s+(scene)\s*([1-4])\s*$");
+        private static Regex simulateBatRegex = new Regex(
+            @$"^simulate\s+({BaseCommand.OneTo255Regex})\s+(battery)\s*({BaseCommand.ZeroTo255Regex})\s*$");
 
         private Match match;
         private bool hasController;
 
         public static bool MatchesSimulate(string simulateVal)
         {
-            return simulateRegex.IsMatch(simulateVal) || simulateSceneRegex.IsMatch(simulateVal);
+            return simulateVal.StartsWith("simulate") &&
+                (
+                    simulateRegex.IsMatch(simulateVal) ||
+                    simulateSceneRegex.IsMatch(simulateVal) ||
+                    simulateBatRegex.IsMatch(simulateVal)
+                );
         }
 
         public static bool MatchesSimulateOnOff(string command)
@@ -38,6 +45,10 @@ namespace hyper.Command
             {
                 match = simulateSceneRegex.Match(simulateVal);
             }
+            else if (simulateBatRegex.IsMatch(simulateVal))
+            {
+                match = simulateBatRegex.Match(simulateVal);
+            }
             else
             {
                 match = simulateOnOffRegex.Match(simulateVal);
@@ -52,7 +63,7 @@ namespace hyper.Command
         {
             NodeId = byte.Parse(match.Groups[1].Value);
             var type = match.Groups[2].Value; //bin,bw,mk (or scene)
-            var endpointStr = match.Groups[3].Value; // or sceneNumber
+            var param3 = match.Groups[3].Value; // endpoint, sceneNumber, or battery value
             var value = match.Groups.Count > 4 ? bool.Parse(match.Groups[4].Value) : false;
 
             //command is always lower case
@@ -82,13 +93,19 @@ namespace hyper.Command
                     };
                     break;
                 case "t": //TPS412
-                    Command = CreateMultiChannelBasicReportEncap(endpointStr, value);
+                    Command = CreateMultiChannelBasicReportEncap(param3, value);
+                    break;
+                case "battery":
+                    Command = new COMMAND_CLASS_BATTERY.BATTERY_REPORT()
+                    {
+                        batteryLevel = byte.Parse(param3)
+                    };
                     break;
                 case "scene":
                     Command = new COMMAND_CLASS_CENTRAL_SCENE_V3.CENTRAL_SCENE_NOTIFICATION()
                     {
                         sequenceNumber = 0, //normally incremented for each message
-                        sceneNumber = byte.Parse(endpointStr),
+                        sceneNumber = byte.Parse(param3),
                         properties1 = new COMMAND_CLASS_CENTRAL_SCENE_V3.CENTRAL_SCENE_NOTIFICATION.Tproperties1
                         {
                             slowRefresh = 1

@@ -560,6 +560,7 @@ namespace hyper
             help.AppendLine("  wakeup nodeId value:                 sets the wake up intervall of a device, in seconds");
             help.AppendLine("  simulate nodeId {bin|bw|ft|mk|t} [channel] {true|false}: simulates a sensor event");
             help.AppendLine("  simulate nodeId scene sceneNumber:   simulates central scene");
+            help.AppendLine("  simulate nodeId battery level:       simulates battery report");
             help.AppendLine("  stop:                                in ClientTCP: stops the current command, or hyper if no command is executing. Same as Ctrl+C in hyper");
             Common.logger.Info(help.ToString());
         }
