@@ -135,6 +135,9 @@ namespace hyper
                 Common.logger.Info("-----------------------------------");
             }
 
+            var deleteTimer = new DatabaseDeleteTimer(programConfig);
+            deleteTimer.Start();
+
             currentCommand = new InteractiveCommand(startArgs.Command, inputManager, port);
             currentCommand.Start();
 

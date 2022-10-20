@@ -1,4 +1,5 @@
 ﻿using hyper.config;
+using hyper.Database.DAO;
 using hyper.Helper;
 using hyper.Input;
 using NLog;
@@ -1149,6 +1150,53 @@ namespace hyper
             }
 
             return configList;
+        }
+
+        internal static void DeleteOldEvents(int maxEventAgeInDays, int daysToDeleteAtOnce)
+        {
+            //maxEventAgeInDays: how long do we want to keep events. for example, events older than 6 months should be deleted.
+
+            // daysToDeleteAtOnce: deleting events can take a lot of time
+            // limit the amount of days to delete
+            // if the task runs every day it should not play a role, but it could avoid bad surprises.
+
+            Common.logger.Info($"deleting events older than {maxEventAgeInDays}, {daysToDeleteAtOnce} at once");
+
+            var eventDAO2 = new EventDAO();
+            Common.logger.Debug("querying oldest event (GetOldest)");
+            var startTime = DateTime.Now;
+            var oldest = eventDAO2.GetOldest(1).FirstOrDefault();
+            var duration = DateTime.Now - startTime;
+            Common.logger.Debug($"query duration GetOldest: {duration}");
+            if (oldest != null)
+            {
+                var oldestLimit = DateTime.Now.AddDays(-1 * maxEventAgeInDays);
+                var age = DateTime.Now - oldest.Added;
+                if (oldest.Added < oldestLimit)
+                {
+                    //ok, there are old events to delete
+                    var otherLimit = oldest.Added.AddDays(daysToDeleteAtOnce);
+                    if (otherLimit < oldestLimit)
+                    {
+                        oldestLimit = otherLimit;
+                    }
+                    Common.logger.Info($"oldest event is from: {oldest.Added}");
+                    Thread.Sleep(1000); //Give DatabaseOutput time to write events
+                    Common.logger.Info($"deleting events older than {oldestLimit} ...");
+                    var start = DateTime.Now;
+                    int numDeleted = eventDAO2.DeleteOlderThan(oldestLimit);
+                    duration = DateTime.Now - start;
+                    Common.logger.Info($"{numDeleted} events deleted in {duration}");
+                }
+                else
+                {
+                    Common.logger.Info($"keeping oldest event {oldest}");
+                }
+            }
+            else
+            {
+                Common.logger.Info("event list is empty");
+            }
         }
     }
 

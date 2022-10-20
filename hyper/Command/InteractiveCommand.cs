@@ -117,6 +117,7 @@ namespace hyper
             var multiRegex = new Regex(@$"^multi\s*({oneTo255Regex})\s*({zeroTo255Regex})\s*(false|true)");
             var rtr_setpointRegex = new Regex(@$"^rtr_setpoint\s*({oneTo255Regex})\s*(\d+\.?\d*)?");
             var rtr_modeRegex = new Regex(@$"^rtr_mode\s*({oneTo255Regex})\s*(\d+)?");
+            var deleteOldeventsRegex = new Regex($@"^deleteoldevents\s*(\d+)*\s*(\d+)*");
 
             Active = true;
             bool oneShot = args.Length > 0;
@@ -261,6 +262,23 @@ namespace hyper
                             blockExit = true;
                             Common.RequestBatteryReport(Program.controller, nodeId);
                             blockExit = false;
+                            break;
+                        }
+                    case var deleteOldEventsVal when deleteOldeventsRegex.IsMatch(deleteOldEventsVal):
+                        {
+                            var match = deleteOldeventsRegex.Match(deleteOldEventsVal);
+                            int maxAge = 180;
+                            int daysAtOnce = 10;
+                            if (!String.IsNullOrEmpty(match.Groups[1].Value))
+                            {
+                                int.TryParse(match.Groups[1].Value, out maxAge);
+                            }
+                            if (!String.IsNullOrEmpty(match.Groups[2].Value))
+                            {
+                                int.TryParse(match.Groups[2].Value, out daysAtOnce);
+                            }
+                            Common.logger.Info("Starting DeleteOldEvents asynchronously, the command loop is not blocked");
+                            Task.Run(() => Common.DeleteOldEvents(maxAge, daysAtOnce));
                             break;
                         }
                     case var listenVal when listenRegex.IsMatch(listenVal):
@@ -541,6 +559,7 @@ namespace hyper
             help.AppendLine("  cancel:                              cancels the current command (ClientTCP only, use Ctrl-C in hyper if a command is active)");
             help.AppendLine("  config nodeId [profile [param]][!]:  configures the device, optionally using a device profile");
             help.AppendLine("  debug {true|false}:                  enable or disable extra debug informations");
+            help.AppendLine("  deleteoldevents [maxAge] [maxDaysToDelete]: deletes events older than maxAge in days, but only for a limited amount of days");
             help.AppendLine("  exclude:                             excludes a device");
             help.AppendLine("  help:                                shows this help");
             help.AppendLine("  include [profile [param]]:           starts inclusion and configuration, optionally using a device profile");

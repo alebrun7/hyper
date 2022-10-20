@@ -2,6 +2,7 @@
 using LinqToDB;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using ZWave.CommandClasses;
@@ -34,6 +35,21 @@ namespace hyper.Database.DAO
             await db.InsertAsync(_event);
         }
 
+        public int DeleteOlderThan(DateTime oldestLimit)
+        {
+            //deleting ist much faster with a direct statement
+            using (var cmd = db.Connection.CreateCommand())
+            {
+                var param = cmd.CreateParameter();
+                param.Value = oldestLimit;
+                param.ParameterName = "@dateLimit";
+                param.DbType = DbType.DateTime;
+                cmd.Parameters.Add(param);
+                cmd.CommandText = "delete from hyper_events where added < @dateLimit";
+                return cmd.ExecuteNonQuery();
+            }
+        }
+
         public void InsertEvents(IEnumerable<Event> _events)
         {
             foreach (var evt in _events)
@@ -56,6 +72,14 @@ namespace hyper.Database.DAO
         public Event GetFirst()
         {
             return db.Event.First();
+        }
+
+        public IQueryable<Event> GetOldest(int num)
+        {
+            var oldest = (from e in db.Event
+                          orderby e.Added ascending
+                          select e).Take(num);
+            return oldest;
         }
 
         public IEnumerable<Event> GetAll()

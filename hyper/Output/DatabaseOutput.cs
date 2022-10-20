@@ -4,15 +4,20 @@ using hyper.Helper;
 using hyper.Helper.Extension;
 using hyper.Models;
 using LinqToDB;
+using System.Collections.Concurrent;
 using System.Data.SQLite;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace hyper.Output
 {
     internal class DatabaseOutput : IOutput
     {
         private EventDAO eventDAO;
+        private BlockingCollection<Event> eventQueue;
+        private Task eventInserterTask;
 
         public DatabaseOutput(string fileName)
         {
@@ -20,7 +25,24 @@ namespace hyper.Output
 
             eventDAO = new EventDAO();
 
-            // Common.logger.Info(Util.ObjToJson(eventDAO.GetAll()));
+            eventQueue = new BlockingCollection<Event>();
+            eventInserterTask = StartProcessingTask();
+        }
+
+        Task StartProcessingTask()
+        {
+            return Task.Run(() => ProcessQueuedEvents());
+        }
+
+        void ProcessQueuedEvents()
+        {
+            while(true)
+            {
+                Event evt = eventQueue.Take();
+                Common.logger.Debug("InsertEvent Start");
+                InsertEvent(evt);
+                Common.logger.Debug("InsertEvent done");
+            }
         }
 
         public void HandleCommand(object command, byte srcNodeId, byte destNodeId)
@@ -97,8 +119,27 @@ namespace hyper.Output
             //        evt.Raw = data;
             //        break;
             //}
+            //InsertEventAsync(evt);
+            eventQueue.Add(evt);
+            Common.logger.Debug("DatabaseOutput: event added to queue");
+        }
 
-            eventDAO.InsertEventAsync(evt);
+        private void InsertEvent(Event evt)
+        {
+            try
+            {
+                eventDAO.InsertEvent(evt);
+            }
+            catch (System.Data.SQLite.SQLiteException e)
+            {
+                //This exception comes after 30 seconds if the database is blocked too long ( "database is locked" ).
+                //the event will be missing in the events.db file, but else nothing critical happens, so this is enough error handling
+                Common.logger.Error($"SQLiteException in DatabaseOutput.InsertEvent() (Message: {e.Message}). Event not written to db: {evt}");
+            }
+            catch (System.Exception e)
+            {
+                Common.logger.Error("Exception in DatabaseOutput.InsertEvent(): " + e.Message);
+            }
         }
     }
 }
