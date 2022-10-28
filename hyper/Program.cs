@@ -128,9 +128,7 @@ namespace hyper
             {
                 Program.controller = controller;
                 Common.logger.Info("Version: {0}", controller.Version);
-                // The HomeId identifying the z-wave network.
-                // it should be unique for each controller.
-                Common.logger.Info("HomeId: {0}", Tools.GetHex(controller.HomeId));
+                InteractiveCommand.LogHomeId();
                 InteractiveCommand.LogIncludedNodes();
                 Common.logger.Info("-----------------------------------");
             }

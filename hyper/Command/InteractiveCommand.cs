@@ -171,6 +171,9 @@ namespace hyper
                     case "help":
                         ShowHelp();
                         break;
+                    case "homeid":
+                        LogHomeId();
+                        break;
                     case "profiles":
                         ShowProfiles();
                         break;
@@ -528,6 +531,20 @@ namespace hyper
             return true;
         }
 
+        public static void LogHomeId()
+        {
+            // The HomeId identifying the z-wave network.
+            // it should be unique for each controller.
+            if (Program.controller != null)
+            {
+                Common.logger.Info("HomeId: {0}", Tools.GetHex(Program.controller.HomeId));
+            }
+            else
+            {
+                Common.logger.Warn("HomeId not available in simulation mode");
+            }
+        }
+
         public static void LogIncludedNodes()
         {
             if (Program.controller != null)
@@ -562,6 +579,7 @@ namespace hyper
             help.AppendLine("  deleteoldevents [maxAge] [maxDaysToDelete]: deletes events older than maxAge in days, but only for a limited amount of days");
             help.AppendLine("  exclude:                             excludes a device");
             help.AppendLine("  help:                                shows this help");
+            help.AppendLine("  homeid:                              show the z-wave HomeId");
             help.AppendLine("  include [profile [param]]:           starts inclusion and configuration, optionally using a device profile");
             help.AppendLine("  included:                            shows  list of included devices (may not be up to date afer include/exclude");
             help.AppendLine("  listen {start|stop|filter nodeID}:   Filters the event output. Example listen filter 12");
