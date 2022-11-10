@@ -194,9 +194,12 @@ namespace hyper
                     case "reset!":
                         {
                             blockExit = true;
+                            LogHomeId();
                             Common.logger.Info("Resetting controller...");
                             Program.controller.SetDefault();
                             Program.controller.SerialApiGetInitData();
+                            Program.controller.MemoryGetId(); //refresh the HomeId
+                            LogHomeId();
                             Common.logger.Info("Done!");
 
                             blockExit = false;
@@ -218,6 +221,12 @@ namespace hyper
                         }
                     case "backup":
                         {
+                            if (simulationMode)
+                            {
+                                Common.logger.Info("Simulation Mode, ignoring command");
+                                break;
+                            }
+                            LogHomeId();
                             if (port == RAZBERRY_PORT)
                             {
                                 Common.logger.Error($"backup not possible with port {port}");
@@ -227,24 +236,51 @@ namespace hyper
                             var result = Common.ReadNVRam(Program.controller, out byte[] eeprom);
                             if (result)
                             {
+                                string homeId = Tools.GetHexShort(Program.controller.HomeId).ToLower();
+                                string dateStr = DateTime.Now.ToString("yyyy-MM-dd-HH-mm");
                                 File.WriteAllBytes("eeprom.bin", eeprom);
+                                File.WriteAllBytes($"eeprom-{homeId}-{dateStr}.bin", eeprom);
                                 Common.logger.Info("Result is {0}", result);
                             }
                             blockExit = false;
                             break;
                         }
-                    case "restore!":
+                    case var restoreCmd when RestoreCommand.IsMatch(restoreCmd):
                         {
+                            if (simulationMode)
+                            {
+                                Common.logger.Info("Simulation Mode, ignoring command");
+                                break;
+                            }
+                            var oldHomeId = LogHomeId();
                             if (port == RAZBERRY_PORT)
                             {
                                 Common.logger.Error($"restore not possible with port {port}");
                                 break;
                             }
                             blockExit = true;
-                            byte[] read = File.ReadAllBytes("eeprom.bin");
-                            var result = Common.WriteNVRam(Program.controller, read);
-                            Common.logger.Info("Result is {0}", result);
-                            Program.controller.SerialApiGetInitData();
+                            try
+                            {
+                                string filename = RestoreCommand.GetFileName(restoreCmd);
+                                byte[] read = File.ReadAllBytes(filename);
+                                var result = Common.WriteNVRam(Program.controller, read);
+                                Common.logger.Info("Result is {0}", result);
+                                if (result) { 
+                                    Program.controller.SerialApiGetInitData();
+                                    Program.controller.MemoryGetId(); //refresh the HomeId
+                                    var newHomeId = LogHomeId();
+                                    var msg = "Eeprom restore finished.";
+                                    if (newHomeId != oldHomeId)
+                                    {
+                                        msg += " Replug Z-Stick and restart hyper";
+                                    }
+                                    Common.logger.Info(msg);
+                                }
+                            }
+                            catch (FileNotFoundException ex)
+                            {
+                                Common.logger.Error(ex.Message);
+                            }
 
                             blockExit = false;
                             break;
@@ -531,17 +567,20 @@ namespace hyper
             return true;
         }
 
-        public static void LogHomeId()
+        public static string LogHomeId()
         {
             // The HomeId identifying the z-wave network.
             // it should be unique for each controller.
             if (Program.controller != null)
             {
-                Common.logger.Info("HomeId: {0}", Tools.GetHex(Program.controller.HomeId));
+                string homeId = Tools.GetHex(Program.controller.HomeId);
+                Common.logger.Info($"HomeId: {homeId}");
+                return homeId;
             }
             else
             {
                 Common.logger.Warn("HomeId not available in simulation mode");
+                return "";
             }
         }
 
@@ -589,7 +628,7 @@ namespace hyper
             help.AppendLine("  reload:                              reload configuration files");
             help.AppendLine("  replace nodeId [profile [param]]:    checks existing nodeId, then replaces the device, optionally using a device profile");
             help.AppendLine("  reset!:                              resets the stick");
-            help.AppendLine("  restore!:                            restores from eeprom.bin in the hyper directory");
+            help.AppendLine("  restore [filename]!:                 restores from eeprom.bin or another file in the hyper directory");
             help.AppendLine("  rtr_mode nodeId [mode]:              gets or sets the thermostat mode (1 is heating, 0 is off)");
             help.AppendLine("  rtr_setpoint nodeId [temperature]:   gets or sets the thermostat setpoint in degrees Celcius");
             help.AppendLine("  show nodeId [count] [event]:         shows last events from the devices, optionally filtered. Example: show 2 10 battery_report");
