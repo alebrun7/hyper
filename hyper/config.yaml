@@ -539,3 +539,15 @@
     config:
         2_1: 1 # temp and hum. reporting (0:off, 1: difference only, 2: regular interval only, 3: both)
         4_2: 30 # Upload time interval regularly (in sec.) (10 to 65535, default 30)
+
+# Aeotec Limited Spirit Thermostatic Valve
+# https://www.opensmarthouse.org/zwavedatabase/1150
+-   deviceName: Aeotec Limited Spirit Thermostatic Valve
+    manufacturerId: 881 #(0x371)
+    productTypeId: 2 #(0x2)
+    productId: 21 #(0015)
+    profile: default # will be used if no profile is specified in the command
+    groups:
+        1: 1 # Lifeline
+    config:
+        # 8_1: 0 # Measured Temperature offset (0xCE-0x32 Offsets the measured temperature by-5,0°C – (+)5,0°C)
