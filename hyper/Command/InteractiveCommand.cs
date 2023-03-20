@@ -638,12 +638,13 @@ namespace hyper
             help.AppendLine("  replace nodeId [profile [param]]:    checks existing nodeId, then replaces the device, optionally using a device profile");
             help.AppendLine("  reset!:                              resets the stick");
             help.AppendLine("  restore [filename]!:                 restores from eeprom.bin or another file in the hyper directory");
+            help.AppendLine("  rtr_operating_state nodeId:          gets the thermostat operating state (1 is heating, 0 is off)");
             help.AppendLine("  rtr_mode nodeId [mode]:              gets or sets the thermostat mode (1 is heating, 0 is off)");
             help.AppendLine("  rtr_setpoint nodeId [temperature]:   gets or sets the thermostat setpoint in degrees Celcius");
             help.AppendLine("  show nodeId [count] [event]:         shows last events from the devices, optionally filtered. Example: show 2 10 battery_report");
             help.AppendLine("  wakeup nodeId:                       gets the wake up intervall of a device, in seconds");
             help.AppendLine("  wakeup nodeId value:                 sets the wake up intervall of a device, in seconds");
-            help.AppendLine("  simulate nodeId {bin|bw|ft|mk|t} [channel] {true|false}: simulates a sensor event");
+            help.AppendLine("  simulate nodeId {bin|bw|ft|mk|rtr|t} [channel] {true|false}: simulates a sensor event");
             help.AppendLine("  simulate nodeId scene sceneNumber:   simulates central scene");
             help.AppendLine("  simulate nodeId battery level:       simulates battery report");
             help.AppendLine("  stop:                                in ClientTCP: stops the current command, or hyper if no command is executing. Same as Ctrl+C in hyper");
