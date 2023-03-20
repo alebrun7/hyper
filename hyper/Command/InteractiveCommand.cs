@@ -117,6 +117,7 @@ namespace hyper
             var multiRegex = new Regex(@$"^multi\s*({oneTo255Regex})\s*({zeroTo255Regex})\s*(false|true)");
             var rtr_setpointRegex = new Regex(@$"^rtr_setpoint\s*({oneTo255Regex})\s*(\d+\.?\d*)?");
             var rtr_modeRegex = new Regex(@$"^rtr_mode\s*({oneTo255Regex})\s*(\d+)?");
+            var rtr_operatingStateRegex = new Regex(@$"^rtr_operating_state\s*({oneTo255Regex})");
             var deleteOldeventsRegex = new Regex($@"^deleteoldevents\s*(\d+)*\s*(\d+)*");
 
             Active = true;
@@ -538,6 +539,14 @@ namespace hyper
                         }
                         ThermostatMode(rtr_modeRegex, modeVal);
                         break;
+                    case var operatingStateVal when rtr_operatingStateRegex.IsMatch(operatingStateVal):
+                        if (simulationMode)
+                        {
+                            Common.logger.Info("Simulation Mode, ignoring command");
+                            break;
+                        }
+                        ThermostatOperatingState(rtr_operatingStateRegex, operatingStateVal);
+                        break;
                     default:
                         Common.logger.Warn("unknown command - " + HelpHint);
                         break;
@@ -774,6 +783,15 @@ namespace hyper
                     LogActionOutcome("rtr_mode", nodeId, success);
                 }
             }
+        }
+
+        private void ThermostatOperatingState(Regex rtr_operatingStateRegex, string operatingStateVal)
+        {
+            var match = rtr_operatingStateRegex.Match(operatingStateVal);
+            var val = match.Groups[1].Value;
+            var nodeId = byte.Parse(val);
+            bool success = Common.RequestThermostatOperatingState(Program.controller, nodeId);
+            LogActionOutcome("get rtr_operating_state", nodeId, success);
         }
 
         private void ThermostatSetpoint(Regex rtr_setpointRegex, string setpointVal)

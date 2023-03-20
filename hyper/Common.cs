@@ -867,6 +867,14 @@ namespace hyper
             return sendDataResult.TransmitStatus == TransmitStatuses.CompleteOk;
         }
 
+        internal static bool RequestThermostatOperatingState(Controller controller, byte nodeId)
+        {
+            Common.logger.Info("Get Thermostat Operating State for node {0}", nodeId);
+            var cmd = new COMMAND_CLASS_THERMOSTAT_OPERATING_STATE_V2.THERMOSTAT_OPERATING_STATE_GET();
+            var sendDataResult = controller.SendData(nodeId, cmd, txOptions);
+            return sendDataResult.TransmitStatus == TransmitStatuses.CompleteOk;
+        }
+
         internal static bool ThermostatMode(Controller controller, byte nodeId, byte value)
         {
             Common.logger.Info("Set Thermostat Mode for node {0} to value {1}", nodeId, value);

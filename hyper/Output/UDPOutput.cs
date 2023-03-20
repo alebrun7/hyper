@@ -114,7 +114,13 @@ namespace hyper.Output
 
                         break;
                     }
-
+                case COMMAND_CLASS_THERMOSTAT_OPERATING_STATE_V2.THERMOSTAT_OPERATING_STATE_REPORT operatingStateReport:
+                    {
+                        commandClass = BitConverter.GetBytes((short)COMMAND_CLASS_THERMOSTAT_OPERATING_STATE_V2.ID);
+                        var value = operatingStateReport.properties1.operatingState;
+                        values = BitConverter.GetBytes((short)value);
+                        break;
+                    }
                 default:
                     return;
             }

@@ -169,8 +169,24 @@ namespace hyper.Tests.Command
                 helper.CreateCommand();
                 CheckBatteryCommand(helper.Command, value);
             }
+        }
 
+        [TestMethod]
+        public void SimulateRTR()
+        {
+            var helper = new SimulateHelper("simulate 3 rtr true", dummyController);
+            helper.CreateCommand();
+            Assert.IsNotNull(helper.Command);
+            Assert.AreEqual(typeof(COMMAND_CLASS_THERMOSTAT_OPERATING_STATE_V2.THERMOSTAT_OPERATING_STATE_REPORT), helper.Command.GetType());
+            var report = (COMMAND_CLASS_THERMOSTAT_OPERATING_STATE_V2.THERMOSTAT_OPERATING_STATE_REPORT)helper.Command;
+            Assert.AreEqual((byte)1, report.properties1.operatingState);
 
+            helper = new SimulateHelper("simulate 3 rtr false", dummyController);
+            helper.CreateCommand();
+            Assert.IsNotNull(helper.Command);
+            Assert.AreEqual(typeof(COMMAND_CLASS_THERMOSTAT_OPERATING_STATE_V2.THERMOSTAT_OPERATING_STATE_REPORT), helper.Command.GetType());
+            report = (COMMAND_CLASS_THERMOSTAT_OPERATING_STATE_V2.THERMOSTAT_OPERATING_STATE_REPORT)helper.Command;
+            Assert.AreEqual((byte)0, report.properties1.operatingState);
         }
 
         private void CheckBatteryCommand(object command, byte value)

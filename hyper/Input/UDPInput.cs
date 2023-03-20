@@ -57,7 +57,11 @@ namespace hyper.Input
                             {
                                 var value = BitConverter.ToBoolean(bytes.Skip(8).Take(1).ToArray());
                                 Common.logger.Info($"node id: {nodeId} - command class: {commandClass} - endpoint: {endpoint} - value: {value}");
-                                if (endpoint > 1)
+                                if (commandClass == COMMAND_CLASS_THERMOSTAT_OPERATING_STATE_V2.ID)
+                                {
+                                    lock (_syncObj) messageQueue.Add($"rtr_operating_state {nodeId}");
+                                }
+                                else if (endpoint > 1)
                                 {
                                     lock (_syncObj) messageQueue.Add($"multi {nodeId} {endpoint - 1} {value}");
                                 }

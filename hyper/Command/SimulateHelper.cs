@@ -11,7 +11,7 @@ namespace hyper.Command
         //z.B. "simulate 3 mk true" => door open
         //"simulate 4 t 1 true" => button 1 on for touch panel
         private static Regex simulateRegex = new Regex(
-            @$"^simulate\s+({BaseCommand.OneTo255Regex})\s+(bin|bw|ft|mk|t)\s*(1|2)?\s*(false|true)");
+            @$"^simulate\s+({BaseCommand.OneTo255Regex})\s+(bin|bw|ft|mk|rtr|t)\s*(1|2)?\s*(false|true)");
         private static Regex simulateOnOffRegex = new Regex(@$"^simulate\s+(false|true)"); //simulate true => simulation mode on
         private static Regex simulateSceneRegex = new Regex(
             @$"^simulate\s+({BaseCommand.OneTo255Regex})\s+(scene)\s*([1-4])\s*$");
@@ -101,6 +101,15 @@ namespace hyper.Command
                         batteryLevel = byte.Parse(param3)
                     };
                     break;
+                case "rtr":
+                    Command = new COMMAND_CLASS_THERMOSTAT_OPERATING_STATE_V2.THERMOSTAT_OPERATING_STATE_REPORT()
+                    {
+                        properties1 = new COMMAND_CLASS_THERMOSTAT_OPERATING_STATE_V2.THERMOSTAT_OPERATING_STATE_REPORT.Tproperties1
+                        {
+                            operatingState = value ? (byte)1 : (byte)0
+                        }
+                    };
+                    break;
                 case "scene":
                     Command = new COMMAND_CLASS_CENTRAL_SCENE_V3.CENTRAL_SCENE_NOTIFICATION()
                     {
@@ -119,6 +128,7 @@ namespace hyper.Command
             if (Command != null)
             {
                 Command.GetKeyValue(out Enums.EventKey eventKey, out float eventValue);
+                Common.logger.Info($"id: {NodeId} - key: {eventKey} - value: {eventValue} (simulated)");
                 Common.logger.Info($"simulate event - id: {NodeId} - key: {eventKey} - value: {eventValue}");
             }
         }
