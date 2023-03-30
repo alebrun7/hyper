@@ -551,3 +551,15 @@
         1: 1 # Lifeline
     config:
         # 8_1: 0 # Measured Temperature offset (0xCE-0x32 Offsets the measured temperature by-5,0°C – (+)5,0°C)
+
+# varmo Tz eco Smart Radiator Thermostat
+# https://www.opensmarthouse.org/zwavedatabase/1150 (very similar)
+-   deviceName: varmo Tz eco Smart Radiator Thermostat
+    manufacturerId: 328 #(0x148)
+    productTypeId: 3 #(0x3)
+    productId: 4 #(0x04)
+    profile: default # will be used if no profile is specified in the command
+    groups:
+        1: 1 # Lifeline
+    config:
+        # 8_1: 0 # Measured Temperature offset (0xCE-0x32 Offsets the measured temperature by-5,0°C – (+)5,0°C)
