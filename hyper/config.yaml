@@ -183,7 +183,7 @@
     manufacturerId: 134 # 0x0086
     productTypeId: 2
     productId: 100
-    profile: bw_humidity
+    profile: bw_battery_humidity
     groups:
         1: 1
     config:
@@ -204,6 +204,41 @@
         101_4: 65 # only battery and humidity
         # Group 1 Report Interval
         # 111_4: 3600
+    wakeup: 3600
+
+# ZW100 Multisensor 6 1.12 with humidity report
+# https://www.cd-jackson.com/index.php/zwave/zwave-device-database/zwave-device-list/devicesummary/778
+# https://www.opensmarthouse.org/zwavedatabase/778
+-   deviceName: ZW100 Multisensor 6
+    manufacturerId: 134 # 0x0086
+    productTypeId: 2
+    productId: 100
+    profile: bw_humidity
+    groups:
+        1: 1
+    config:
+        # factory reset
+        #255_4: 1431655765
+        # Motion Sensor reset timeout
+        3_2: 25
+        # Motion sensor sensitivity, useful for some older devices
+        4_1: 5 # 5: max sensitivity, default but some devices always reset to 0
+        # Motion Sensor Triggered Command
+        5_1: 2
+        40_1: 1 # enable selective reporting (1 enable, 2 disable)
+        #41_4: 20 # Threshold change in temperature to induce an automatic report. (in 0.1 Grad Celsius), default:20 (read value is very special, gives 1310976 for value 20)
+        42_1: 5 # Threshold change in humidity to induce an automatic report. default 10
+        # 43_2: 100 # Threshold for luminance in LUX (default 100)
+        # 44_1: 10 # Threshold change in battery level to induce an automatic report.  (in %, default 10)
+        # sum of:
+        # Battery=1
+        # Ultraviolet=16
+        # Temperature=32
+        # Humidity=64
+        # Light=128
+        101_4: 97 # Battery, Temperature, Humidity
+        # Group 1 Report Interval
+        # 111_4: 3600 # The interval time of sending reports in Report group 1, in Sek. bei USB
     wakeup: 3600
 
 # FGWP102 Metered Wall Plug Switch
