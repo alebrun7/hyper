@@ -13,13 +13,20 @@ namespace hyper.Output
 {
     internal class UDPOutput : IOutput
     {
+        private const string WORKAROUNDFORBUTTONS_DEFAULT = "";
+        private const string WORKAROUNDFORBUTTONS_KEY = "workaroundForButtons";
+
         private Socket socket;
         private IPEndPoint ep;
         private Dictionary<byte, (DateTime, (Enums.EventKey, float))> eventMap = new Dictionary<byte, (DateTime, (Enums.EventKey, float))>();
         public static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        private Inputs.InputManager inputManager;
+        private HashSet<byte> workaroundForButtonsSet = new HashSet<byte>();
 
-        public UDPOutput(string ipAdress, int port)
+        public UDPOutput(string ipAdress, int port, Inputs.InputManager inputManager)
         {
+            this.inputManager = inputManager;
+
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
             IPAddress broadcast = IPAddress.Parse(ipAdress);
@@ -29,6 +36,24 @@ namespace hyper.Output
             //string test = "{\"properties1\":{\"sourceEndPoint\":2,\"res\":0},\"properties2\":{\"destinationEndPoint\":1,\"bitAddress\":0},\"commandClass\":32,\"command\":1,\"parameter\":[255]}";
             //var testObj = (COMMAND_CLASS_MULTI_CHANNEL_V4.MULTI_CHANNEL_CMD_ENCAP)Util.JsonToObj(test, typeof(COMMAND_CLASS_MULTI_CHANNEL_V4.MULTI_CHANNEL_CMD_ENCAP));
             //HandleCommand(testObj, 80, 80);
+        }
+
+        public void ReadProgramConfig()
+        {
+            int[] buttonArray = Program.programConfig.GetIntListValueOrDefault(WORKAROUNDFORBUTTONS_KEY, WORKAROUNDFORBUTTONS_DEFAULT);
+            if (buttonArray.Length > 0)
+            {
+                Common.logger.Info("workaroundForButtons: {0}", string.Join<int>(" ", buttonArray));
+            }
+            else
+            {
+                Common.logger.Info("workaroundForButtons disabled");
+            }
+            workaroundForButtonsSet = new HashSet<byte>();
+            foreach(int id in buttonArray)
+            {
+                workaroundForButtonsSet.Add((byte)id);
+            }
         }
 
         public void HandleCommand(object command, byte srcNodeId, byte destNodeId)
@@ -121,6 +146,13 @@ namespace hyper.Output
                         values = BitConverter.GetBytes((short)value);
                         break;
                     }
+                case COMMAND_CLASS_WAKE_UP_V2.WAKE_UP_NOTIFICATION wakeUpNotification:
+                    {
+                        //only for workaround, not for alfred
+                        commandClass = BitConverter.GetBytes((short)COMMAND_CLASS_WAKE_UP_V2.ID);
+                        values = BitConverter.GetBytes((short)1);
+                        break;
+                    }
                 default:
                     return;
             }
@@ -130,7 +162,10 @@ namespace hyper.Output
             {
                 if (!eventMap.ContainsKey(srcNodeId))
                 {
-                    eventMap[srcNodeId] = (DateTime.Now, (eventKey, eventValue));
+                    if (eventKey != Enums.EventKey.WAKEUP)
+                    {
+                        eventMap[srcNodeId] = (DateTime.Now, (eventKey, eventValue));
+                    }
                 }
                 else
                 {
@@ -153,13 +188,32 @@ namespace hyper.Output
                             Common.logger.Info("after state close should not come binary! check device configuriaton. Ignoring");
                             return;
                         }
-                        eventMap[srcNodeId] = (DateTime.Now, (eventKey, eventValue));
+
+                        //Check workaround for button:
+                        if (diffInTimeSeconds < 5 && tempKey == Enums.EventKey.BATTERY && eventKey == Enums.EventKey.WAKEUP)
+                        {
+                            if (NeedsButtonWorkaround(srcNodeId))
+                            {
+                                inputManager.InjectCommand($"simulate {srcNodeId} ft true");
+                            }
+                        }
+                        if (eventKey != Enums.EventKey.WAKEUP) {
+                            eventMap[srcNodeId] = (DateTime.Now, (eventKey, eventValue));
+                        }
                     }
                 }
             }
-            var datagram = ByteArrayToString(buffer);
-            logger.Debug("UDPOutput: send " + datagram);
-            Send(buffer);
+            if (eventKey != Enums.EventKey.WAKEUP)
+            {
+                var datagram = ByteArrayToString(buffer);
+                logger.Debug("UDPOutput: send " + datagram);
+                Send(buffer);
+            }
+        }
+
+        private bool NeedsButtonWorkaround(byte srcNodeId)
+        {
+            return workaroundForButtonsSet.Contains(srcNodeId);
         }
 
         private static bool ShouldCheckForSameMessage(Enums.EventKey eventKey)

@@ -171,6 +171,18 @@ namespace hyper.Tests.Command
             }
         }
 
+
+        [TestMethod]
+        public void SimulateWakeup_Recognized()
+        {
+                string command = $"simulate 3 wakeup true";
+                Assert.IsTrue(SimulateHelper.MatchesSimulate(command));
+
+                var helper = new SimulateHelper(command, dummyController);
+                helper.CreateCommand();
+                CheckWakeupCommand(helper.Command);
+        }
+
         [TestMethod]
         public void SimulateRTR()
         {
@@ -195,6 +207,12 @@ namespace hyper.Tests.Command
             Assert.AreEqual(typeof(COMMAND_CLASS_BATTERY.BATTERY_REPORT), command.GetType());
             var cmd = (COMMAND_CLASS_BATTERY.BATTERY_REPORT)command;
             Assert.AreEqual(value, cmd.batteryLevel);
+        }
+
+        private void CheckWakeupCommand(object command)
+        {
+            Assert.IsNotNull(command);
+            Assert.AreEqual(typeof(COMMAND_CLASS_WAKE_UP_V2.WAKE_UP_NOTIFICATION), command.GetType());
         }
 
         private static byte[] BatteryValues()

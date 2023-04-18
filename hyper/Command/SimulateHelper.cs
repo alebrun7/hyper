@@ -11,7 +11,7 @@ namespace hyper.Command
         //z.B. "simulate 3 mk true" => door open
         //"simulate 4 t 1 true" => button 1 on for touch panel
         private static Regex simulateRegex = new Regex(
-            @$"^simulate\s+({BaseCommand.OneTo255Regex})\s+(bin|bw|ft|mk|rtr|t)\s*(1|2)?\s*(false|true)");
+            @$"^simulate\s+({BaseCommand.OneTo255Regex})\s+(bin|bw|ft|mk|rtr|t|wakeup)\s*(1|2)?\s*(false|true)");
         private static Regex simulateOnOffRegex = new Regex(@$"^simulate\s+(false|true)"); //simulate true => simulation mode on
         private static Regex simulateSceneRegex = new Regex(
             @$"^simulate\s+({BaseCommand.OneTo255Regex})\s+(scene)\s*([1-4])\s*$");
@@ -120,6 +120,9 @@ namespace hyper.Command
                             slowRefresh = 1
                         }
                     };
+                    break;
+                case "wakeup":
+                    Command = new COMMAND_CLASS_WAKE_UP_V2.WAKE_UP_NOTIFICATION();
                     break;
                 default:
                     Common.logger.Error($"simulate: type {type} not recognized!");

@@ -124,6 +124,12 @@ namespace hyper.Output
             Common.logger.Debug("DatabaseOutput: event added to queue");
         }
 
+        //do nothing
+        public void ReadProgramConfig()
+        {
+
+        }
+
         private void InsertEvent(Event evt)
         {
             try

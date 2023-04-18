@@ -18,5 +18,13 @@ namespace hyper.Output
                 output.HandleCommand(command, srcNodeId, destNodeId);
             }
         }
+
+        internal static void ReadProgramConfig()
+        {
+            foreach (var output in Outputs)
+            {
+                output.ReadProgramConfig();
+            }
+        }
     }
 }

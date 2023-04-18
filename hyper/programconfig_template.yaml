@@ -9,3 +9,6 @@ deleteOldEventsHour: 10
 deleteOldEventsMinutes: 2
 deleteOldEventsDaysToKeep: 180
 deleteOldEventsMaxDaysToDelete: 10
+
+# Workaround for Buttons: space separated list of nodes needing the workaround
+workaroundForButtons:

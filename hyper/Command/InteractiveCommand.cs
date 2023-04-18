@@ -662,6 +662,7 @@ namespace hyper
             {
                 Common.logger.Info("retries disabled for basic");
             }
+            OutputManager.ReadProgramConfig();
         }
 
          private void BasicOrBinarySet(Regex basicRegex, string basicSetVal)

@@ -42,9 +42,9 @@ namespace hyper
 
 
 
-        private static void SetupOutputs()
+        private static void SetupOutputs(InputManager inputManager)
         {
-            var udpOutput = new UDPOutput("127.0.0.1", 54321);
+            var udpOutput = new UDPOutput("127.0.0.1", 54321, inputManager);
             var databaseOutput = new DatabaseOutput("events.db");
             OutputManager.AddOutput(udpOutput);
             OutputManager.AddOutput(databaseOutput);
@@ -59,7 +59,7 @@ namespace hyper
             //return;
             InputManager inputManager = new InputManager();
             SetupInputs(inputManager);
-            SetupOutputs();
+            SetupOutputs(inputManager);
 
             ICommand currentCommand = null;
 
