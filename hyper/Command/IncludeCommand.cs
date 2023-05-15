@@ -48,6 +48,7 @@ namespace hyper
 
             Common.logger.Info("Starting inclusion, please wake up device...");
 
+            int retries = 15;
             var nodeIncluded = false;
             byte nodeId = 0;
             do
@@ -58,11 +59,16 @@ namespace hyper
                     Common.logger.Warn("Could not include any node, trying again...");
                     Thread.Sleep(200);
                 }
-            } while (!nodeIncluded && !abort);
+            } while (!nodeIncluded && !abort && retries-- > 0);
 
             if (abort)
             {
                 Common.logger.Info("aborted!");
+                return false;
+            }
+            if (retries < 0)
+            {
+                Common.logger.Info("too many retries, aborted");
                 return false;
             }
             Common.logger.Info("Success! New node id: {0}", nodeId);

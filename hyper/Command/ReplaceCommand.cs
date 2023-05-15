@@ -84,7 +84,8 @@ namespace hyper
             }
             Common.logger.Info("Replacing Node... Set new device to inclusion mode!");
             bool nodeReplaced = Common.ReplaceNode(controller, nodeId);
-            while (!nodeReplaced && !abort)
+            int retries = 14;
+            while (!nodeReplaced && !abort && retries-- > 0)
             {
                 Common.logger.Info("Could not replace device! Trying again.");
                 Thread.Sleep(200); //same as IncludeCommand. for davert_2 this loop went crazy for 2 devices...
@@ -94,6 +95,11 @@ namespace hyper
             if (abort)
             {
                 Common.logger.Info("aborted!");
+                return false;
+            }
+            if (retries < 0)
+            {
+                Common.logger.Info("too many retries, aborted");
                 return false;
             }
 
