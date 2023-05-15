@@ -1027,12 +1027,27 @@ namespace hyper
 
         public static bool ReplaceNode(Controller controller, byte nodeId)
         {
+            var tempTime = DateTime.Now;
             var replacedNode = controller.ReplaceFailedNode(nodeId, null, Modes.NodeOptionHighPower | Modes.NodeOptionNetworkWide, 20000);
             replacedNode.WaitCompletedSignal();
             var result = (InclusionResult)replacedNode.Result;
             var status = result.AddRemoveNode.AddRemoveNodeStatus;
             Common.logger.Info("ReplaceNode status for id {0}: {1}", nodeId, status);
+            var currentTime = DateTime.Now;
+            var diffInTimeMilliSeconds = (currentTime - tempTime).TotalMilliseconds;
+
             var replaced = result.AddRemoveNode.AddRemoveNodeStatus == ZWave.BasicApplication.Enums.AddRemoveNodeStatuses.Replaced;
+
+            if (diffInTimeMilliSeconds < 1000 && status == ZWave.BasicApplication.Enums.AddRemoveNodeStatuses.None)
+            {
+                Common.logger.Warn("ReplaceNode for id {0} failed too quick, checking if it is replaced despite the error code", nodeId);
+                if (CheckReachable(controller, nodeId))
+                {
+                    Common.logger.Warn("Node {0} reachable, marking as replaced", nodeId);
+                    replaced = true;
+                }
+            }
+
             if (replaced)
             {
                 AddToIncludedNodes(controller, nodeId);
