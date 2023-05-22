@@ -427,6 +427,20 @@
         # Which reports need to send in Report group 3
         103_4: 0
 
+# AEON Labs ZW175 Smart Switch 7
+# https://www.opensmarthouse.org/zwavedatabase/1134
+-   deviceName: AEON Labs ZW175 Smart Switch 778
+    manufacturerId:  881 # (0x371)
+    productTypeId: 3 # 0x0003
+    productId: 175 # 0x00AF
+    profile: default # will be used if no profile is specified in the command
+    groups:
+        1: 1
+    config:
+        20_1: 0 # Power restored state (default 0=last known, 1=on, 2=off)
+        81_1: 2 # (default 2=On/Off mode - 0=disabled)
+        91_2: 15 # Watt threshhold (default=0)
+
 # ZW141 Nano Shutter
 # https://www.opensmarthouse.org/zwavedatabase/912
 -   deviceName: ZW141 Nano Shutter
