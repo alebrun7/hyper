@@ -649,3 +649,69 @@
         1: 1 # Lifeline
     config:
         # 8_1: 0 # Measured Temperature offset (0xCE-0x32 Offsets the measured temperature by-5,0°C – (+)5,0°C)
+
+# Philio Technology PST02-A Slim Multi-Sensor
+# https://www.opensmarthouse.org/zwavedatabase/168
+-   deviceName: Philio Technology PST02-A Slim Multi-Sensor
+    manufacturerId: 316 # (0x013c)
+    productTypeId: 2 #(0x2)
+    productId: 12 #(0x0C)
+    profile: default # will be used if no profile is specified in the command
+    groups:
+        1: 1 # Lifeline
+    config:
+        3_1: 80 # PIR sensitivity (default 80, 0 to 99)
+        4_1: 0 # Light threshhold (default 99, 0 to disable light, 100 to always on)
+        5_1: 60 # Operation mode
+        # bit 2 Disable the door/window (1: disable, 0, enable) -> 4
+        # bit 3 temperature scale (1: Celsius), -> 8
+        # bit 4 disable illumination report after event detected (1: disable) -> 16
+        # bit 5 disable Temperature report (1: disable) -> 32
+        6_1: 15 # bit0: Disable magnetic integrate illumination and others... for group 2
+        7_1: 114 # Customer function
+        # bit 1: enable sending motion off report -> 2,
+        # bit 2: enable PIR super sensitivity mode,
+        # bit 4 notification type: 0: notification report, 1: Sensor binary report ->16,
+        # bit 5 disable multi CC in auto report -> 32,
+        # bit 6 Disable to report battery state when the device triggered -> 64
+        8_1: 3 # PIR detected interval time (default 3: 24 sec, 1 to 127, in 3 Seconds steps)
+        10_1: 36 # Auto report battery time (defaullt 12, 1 to 127, see param 20 but default ist 30 minutes ticks)
+        11_1: 0 # disable auto report door/window state
+        12_1: 0 # disable auto report illumination
+        13_1: 0 # disable auto report Temperature
+        20_1: 30 # auto report tick interval (default 30) in minutes
+        21_1: 0 # disable temperature differential report
+        22_1: 0 # disable illumination differential report
+
+# Philio Technology PST02-B Slim Multi-Sensor
+# https://www.opensmarthouse.org/zwavedatabase/169
+-   deviceName: Philio Technology PST02-B Slim Multi-Sensor
+    manufacturerId: 316 # (0x013c)
+    productTypeId: 2 #(0x2)
+    productId: 13 #(0x0D)
+    profile: default # will be used if no profile is specified in the command
+    groups:
+        1: 1 # Lifeline
+    config:
+        3_1: 80 # PIR sensitivity (default 80, 0 to 99)
+        4_1: 0 # Light threshhold (default 99, 0 to disable light, 100 to always on)
+        5_1: 60 # Operation mode
+        # bit 2 Disable the door/window (1: disable, 0, enable) -> 4
+        # bit 3 temperature scale (1: Celsius), -> 8
+        # bit 4 disable illumination report after event detected (1: disable) -> 16
+        # bit 5 disable Temperature report (1: disable) -> 32
+        6_1: 15 # bit0: Disable magnetic integrate illumination and others... for group 2
+        7_1: 114 # Customer function
+        # bit 1: enable sending motion off report -> 2,
+        # bit 2: enable PIR super sensitivity mode,
+        # bit 4 notification type: 0: notification report, 1: Sensor binary report ->16,
+        # bit 5 disable multi CC in auto report -> 32,
+        # bit 6 Disable to report battery state when the device triggered -> 64
+        8_1: 3 # PIR detected interval time (default 3: 24 sec, 1 to 127, in 3 Seconds steps)
+        10_1: 36 # Auto report battery time (defaullt 12, 1 to 127, see param 20 but default ist 30 minutes ticks)
+        11_1: 0 # disable auto report door/window state
+        12_1: 0 # disable auto report illumination
+        13_1: 0 # disable auto report Temperature
+        20_1: 30 # auto report tick interval (default 30) in minutes
+        21_1: 0 # disable temperature differential report
+        22_1: 0 # disable illumination differential report
