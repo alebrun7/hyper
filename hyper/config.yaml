@@ -455,6 +455,19 @@
         81_1: 2 # LED indicator mode (default 2=On/Off mode - 0=disabled)
         91_2: 15 # Watt threshhold (default=0)
 
+# TKB Home TZ68 Smart plug in switch
+# https://www.opensmarthouse.org/zwavedatabase/159
+-   deviceName: TKB Home TZ68 Smart plug in switch
+    manufacturerId:  280 # (0x0118)
+    productTypeId: 3 # 0x0003
+    productId: 2 # 0x0002
+    profile: default # will be used if no profile is specified in the command
+    groups:
+        1: 1
+    config:
+        1_1: 0 # LED Behavior ( 0: led on/off like switch, default 1: led on if switch off, off if switch on)
+        2_1: 0 # Memory function ( 0: status off after power on, default 1: socket status is same as before when power on)
+
 # ZW141 Nano Shutter
 # https://www.opensmarthouse.org/zwavedatabase/912
 -   deviceName: ZW141 Nano Shutter
