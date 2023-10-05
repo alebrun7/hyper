@@ -1069,12 +1069,12 @@ namespace ZWave.BasicApplication.Devices
             return (MemoryGetBufferResult)Execute(new MemoryGetBufferOperation(offset, length));
         }
 
-        public ReadNVRamResult ReadNVRam(ushort offset, byte length)
+        public ReadNVRamResult ReadNVRam(uint offset, byte length)
         {
             return (ReadNVRamResult)Execute(new ReadNVRamOperation(offset, length));
         }
 
-        public WriteNVRamResult WriteNVRam(ushort offset, byte length, byte[] data)
+        public WriteNVRamResult WriteNVRam(uint offset, byte length, byte[] data)
         {
             return (WriteNVRamResult)Execute(new WriteNVRamOperation(offset, length, data));
         }

@@ -222,28 +222,12 @@ namespace hyper
                         }
                     case "backup":
                         {
-                            if (simulationMode)
-                            {
-                                Common.logger.Info("Simulation Mode, ignoring command");
-                                break;
-                            }
-                            LogHomeId();
-                            if (port == RAZBERRY_PORT)
-                            {
-                                Common.logger.Error($"backup not possible with port {port}");
-                                break;
-                            }
-                            blockExit = true;
-                            var result = Common.ReadNVRam(Program.controller, out byte[] eeprom);
-                            if (result)
-                            {
-                                string homeId = Tools.GetHexShort(Program.controller.HomeId).ToLower();
-                                string dateStr = DateTime.Now.ToString("yyyy-MM-dd-HH-mm");
-                                File.WriteAllBytes("eeprom.bin", eeprom);
-                                File.WriteAllBytes($"eeprom-{homeId}-{dateStr}.bin", eeprom);
-                                Common.logger.Info("Result is {0}", result);
-                            }
-                            blockExit = false;
+                            Backup(false);
+                            break;
+                        }
+                    case "backup 256k":
+                        {
+                            Backup(true);
                             break;
                         }
                     case var restoreCmd when RestoreCommand.IsMatch(restoreCmd):
@@ -266,7 +250,7 @@ namespace hyper
                                 byte[] read = File.ReadAllBytes(filename);
                                 var result = Common.WriteNVRam(Program.controller, read);
                                 Common.logger.Info("Result is {0}", result);
-                                if (result) { 
+                                if (result) {
                                     Program.controller.SerialApiGetInitData();
                                     Program.controller.MemoryGetId(); //refresh the HomeId
                                     var newHomeId = LogHomeId();
@@ -576,6 +560,32 @@ namespace hyper
             return true;
         }
 
+        private void Backup(bool readBigEeprom)
+        {
+            if (simulationMode)
+            {
+                Common.logger.Info("Simulation Mode, ignoring command");
+                return;
+            }
+            LogHomeId();
+            if (port == RAZBERRY_PORT)
+            {
+                Common.logger.Error($"backup not possible with port {port}");
+                return;
+            }
+            blockExit = true;
+            var result = Common.ReadNVRam(Program.controller, out byte[] eeprom, readBigEeprom);
+            if (result)
+            {
+                string homeId = Tools.GetHexShort(Program.controller.HomeId).ToLower();
+                string dateStr = DateTime.Now.ToString("yyyy-MM-dd-HH-mm");
+                File.WriteAllBytes("eeprom.bin", eeprom);
+                File.WriteAllBytes($"eeprom-{homeId}-{dateStr}.bin", eeprom);
+                Common.logger.Info("Result is {0}", result);
+            }
+            blockExit = false;
+        }
+
         public static string LogHomeId()
         {
             // The HomeId identifying the z-wave network.
@@ -616,7 +626,7 @@ namespace hyper
         {
             var help = new StringBuilder();
             help.AppendLine("Available commands:");
-            help.AppendLine("  backup:                              creates a backup eeprom.bin file in the hyper directory");
+            help.AppendLine("  backup [256k]:                       creates a backup eeprom.bin file in the hyper directory");
             help.AppendLine("  basic nodeId:                        queries the state of a device, for example a relais");
             help.AppendLine("  basic nodeId {true|false}:           switches a device on or off, for example a relais");
             help.AppendLine("  binary nodeId:                       queries the state of a device using binary command class");
@@ -665,7 +675,7 @@ namespace hyper
             OutputManager.ReadProgramConfig();
         }
 
-         private void BasicOrBinarySet(Regex basicRegex, string basicSetVal)
+        private void BasicOrBinarySet(Regex basicRegex, string basicSetVal)
         {
             var match = basicRegex.Match(basicSetVal);
             var action = match.Groups[1].Value;

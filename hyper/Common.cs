@@ -915,20 +915,24 @@ namespace hyper
 
         public static bool WriteNVRam(Controller controller, byte[] eeprom)
         {
-            if (eeprom.Length != 65536)
+            int len64K = 65536;
+            int len256K = 0x40000;
+            if (eeprom.Length != len64K && eeprom.Length != len256K)
             {
                 Common.logger.Warn("Wrong file size!");
                 return false;
             }
+            int totalLen = eeprom.Length;
+            float totalLenFloat = 1.0f * totalLen;
             int counter = 0;
-            while (counter < 65536)
+            while (counter < totalLen)
             {
                 if (counter % 4096 == 0)
                 {
-                    Common.logger.Info("Progress: {0}", (counter / 65536f).ToString("0.00%"));
+                    Common.logger.Info("Progress: {0}", (counter / totalLenFloat).ToString("0.00%"));
                 }
 
-                var result = controller.WriteNVRam((ushort)counter, 128, eeprom.Skip(counter).Take(128).ToArray());
+                var result = controller.WriteNVRam((uint)counter, 128, eeprom.Skip(counter).Take(128).ToArray());
                 if (result.State == ZWave.ActionStates.Completed)
                 {
                     //  Buffer.BlockCopy(result.RetValue, 0, eeprom, counter, 128);
@@ -940,23 +944,29 @@ namespace hyper
                 }
                 counter += 128;
             }
-            Common.logger.Info("Progress: {0}", (65536f / 65536f).ToString("0.00%"));
+            Common.logger.Info("Progress: {0}", (totalLenFloat / totalLenFloat).ToString("0.00%"));
 
             return true;
         }
 
-        public static bool ReadNVRam(Controller controller, out byte[] eeprom)
+        public static bool ReadNVRam(Controller controller, out byte[] eeprom, bool readBigEeprom)
         {
-            eeprom = new byte[65536];
+            int totalLen = 65536;
+            if (readBigEeprom)
+            {
+                totalLen = 0x40000; //256K
+            }
+            float totalLenFloat = 1.0f * totalLen;
+            eeprom = new byte[totalLen];
             int counter = 0;
-            while (counter < 65536)
+            while (counter < totalLen)
             {
                 if (counter % 4096 == 0)
                 {
-                    Common.logger.Info("Progress: {0}", (counter / 65536f).ToString("0.00%"));
+                    Common.logger.Info("Progress: {0}", (counter / totalLenFloat).ToString("0.00%"));
                 }
 
-                var result = controller.ReadNVRam((ushort)counter, 128);
+                var result = controller.ReadNVRam((uint)counter, 128);
                 if (result.State == ZWave.ActionStates.Completed)
                 {
                     Buffer.BlockCopy(result.RetValue, 0, eeprom, counter, 128);
@@ -968,7 +978,7 @@ namespace hyper
                 }
                 counter += 128;
             }
-            Common.logger.Info("Progress: {0}", (65536f / 65536f).ToString("0.00%"));
+            Common.logger.Info("Progress: {0}", (totalLenFloat / totalLenFloat).ToString("0.00%"));
 
             return true;
         }
@@ -1169,7 +1179,7 @@ namespace hyper
             {
                 configList = deserializer.Deserialize<List<ConfigItem>>(yamlText);
             }
-            catch(YamlException e)
+            catch (YamlException e)
             {
                 logger.Error(e.Message);
             }

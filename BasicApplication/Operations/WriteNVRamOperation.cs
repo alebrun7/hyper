@@ -9,10 +9,11 @@ namespace BasicApplication_netcore.Operations
 {
     public class WriteNVRamOperation : RequestApiOperation
     {
-        private ushort Offset { get; set; }
+        // the Offset is coded with 3 Bytes in CreateInputParameters so obviously it can be greater than 65536 or two bytes. We use up to 0x40000 (256K)
+        private uint Offset { get; set; }
         private byte Length { get; set; }
         private byte[] Buffer { get; set; }
-        public WriteNVRamOperation(ushort offset, byte length, byte[] buffer)
+        public WriteNVRamOperation(uint offset, byte length, byte[] buffer)
             : base(CommandTypes.CmdNVMExtWrite, false)
         {
             Offset = offset;
@@ -29,12 +30,12 @@ namespace BasicApplication_netcore.Operations
             System.Buffer.BlockCopy(Buffer, 0, input, param.Length, Buffer.Length);
 
             return input;
-          //  return new byte[] { (byte)(Offset >> 16), (byte)(Offset >> 8), (byte)(Offset & 0xFF), (byte)(Length >> 8), (byte)(Length & 0xFF) };
+            //  return new byte[] { (byte)(Offset >> 16), (byte)(Offset >> 8), (byte)(Offset & 0xFF), (byte)(Length >> 8), (byte)(Length & 0xFF) };
         }
 
         protected override void SetStateCompleted(ActionUnit ou)
         {
-           // SpecificResult.RetValue = ((DataReceivedUnit)ou).DataFrame.Payload;
+            // SpecificResult.RetValue = ((DataReceivedUnit)ou).DataFrame.Payload;
             base.SetStateCompleted(ou);
         }
 

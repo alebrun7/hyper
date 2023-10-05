@@ -9,9 +9,10 @@ namespace BasicApplication_netcore.Operations
 {
     public class ReadNVRamOperation : RequestApiOperation
     {
-        private ushort Offset { get; set; }
+        // the Offset is coded with 3 Bytes in CreateInputParameters so obviously it can be greater than 65536 or two bytes. We use up to 0x40000 (256K)
+        private uint Offset { get; set; }
         private byte Length { get; set; }
-        public ReadNVRamOperation(ushort offset, byte length)
+        public ReadNVRamOperation(uint offset, byte length)
             : base(CommandTypes.CmdNVMExtRead, false)
         {
             Offset = offset;
