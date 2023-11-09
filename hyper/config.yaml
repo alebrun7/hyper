@@ -429,7 +429,7 @@
 
 # AEON Labs ZW175 Smart Switch 7
 # https://www.opensmarthouse.org/zwavedatabase/1134
--   deviceName: AEON Labs ZW175 Smart Switch 778
+-   deviceName: AEON Labs ZW175 Smart Switch 7
     manufacturerId:  881 # (0x371)
     productTypeId: 3 # 0x0003
     productId: 175 # 0x00AF
@@ -443,7 +443,7 @@
 
 # AEON Labs ZW175 Smart Switch 7
 # https://www.opensmarthouse.org/zwavedatabase/1134
--   deviceName: AEON Labs ZW175 Smart Switch 778
+-   deviceName: AEON Labs ZW175 Smart Switch 7
     manufacturerId:  881 # (0x371)
     productTypeId: 3 # 0x0003
     productId: 175 # 0x00AF
@@ -453,6 +453,20 @@
     config:
         20_1: 1 # Power restored state (default 0=last known, 1=on, 2=off)
         81_1: 2 # LED indicator mode (default 2=On/Off mode - 0=disabled)
+        91_2: 15 # Watt threshhold (default=0)
+
+# AEON Labs ZW175 Smart Switch 7
+# https://www.opensmarthouse.org/zwavedatabase/1134
+-   deviceName: AEON Labs ZW175 Smart Switch 7
+    manufacturerId:  881 # (0x371)
+    productTypeId: 3 # 0x0003
+    productId: 175 # 0x00AF
+    profile: ssd_led_off # for current measuring -- automatically on after power restored
+    groups:
+        1: 1
+    config:
+        20_1: 0 # Power restored state (default 0=last known, 1=on, 2=off)
+        81_1: 0 # LED indicator mode (default 2=On/Off mode - 0=disabled)
         91_2: 15 # Watt threshhold (default=0)
 
 # TKB Home TZ68 Smart plug in switch
@@ -542,6 +556,7 @@
     productTypeId: 3074 #0x0C02
     profile: default # will be used if no profile is specified in the command
     config:
+        1_1: 3 # Fibaro Smoke Sensor sensitivity - 3 is LOW, default is 2 (MEDIUM)
         20_2: 0 # Temperature report interval - 0: reports inactive - default: 1 = 10 seconds
     wakeup: 65535 # max value, a little more than 18 hours. 0 would disable wakeup completely - default was 6 hours
 
