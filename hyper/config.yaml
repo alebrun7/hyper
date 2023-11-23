@@ -680,6 +680,14 @@
     productId: 117 # (0x0075)
     profile: default # will be used if no profile is specified in the command
 
+# Aeotec ZW189 Range Extender 7
+# https://www.opensmarthouse.org/zwavedatabase/527
+-   deviceName: Aeotec ZW189 Range Extender 7
+    manufacturerId: 881 #(0x371)
+    productTypeId: 4 # (0x4)
+    productId: 189 # (0xBD)
+    profile: default # will be used if no profile is specified in the command
+
 # Aeotec NanoMote Quad
 # https://www.opensmarthouse.org/zwavedatabase/1006
 -   deviceName: Aeotec NanoMote Quad ZWA003
