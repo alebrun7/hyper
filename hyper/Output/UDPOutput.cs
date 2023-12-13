@@ -22,10 +22,13 @@ namespace hyper.Output
         public static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private Inputs.InputManager inputManager;
         private HashSet<byte> workaroundForButtonsSet = new HashSet<byte>();
+        private Dictionary<byte, (DateTime, float)> eventMapBinary = new Dictionary<byte, (DateTime, float)>();
+        private BinaryFilterForMS7 filterForMS7;
 
         public UDPOutput(string ipAdress, int port, Inputs.InputManager inputManager)
         {
             this.inputManager = inputManager;
+            filterForMS7 = new BinaryFilterForMS7(eventMapBinary);
 
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
 
@@ -184,6 +187,7 @@ namespace hyper.Output
                     if (eventKey != Enums.EventKey.WAKEUP)
                     {
                         eventMap[srcNodeId] = (DateTime.Now, (eventKey, eventValue));
+                        filterForMS7.StoreEvent(srcNodeId, eventKey, eventValue);
                     }
                 }
                 else
@@ -215,6 +219,11 @@ namespace hyper.Output
                             {
                                 inputManager.InjectCommand($"simulate {srcNodeId} ft true");
                             }
+                        }
+                        if (filterForMS7.ShouldIgnore(srcNodeId, eventKey, eventValue))
+                        {
+                            eventMap[srcNodeId] = (DateTime.Now, (eventKey, eventValue));
+                            return;
                         }
                         if (eventKey != Enums.EventKey.WAKEUP) {
                             eventMap[srcNodeId] = (DateTime.Now, (eventKey, eventValue));
