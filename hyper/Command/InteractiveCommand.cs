@@ -355,6 +355,11 @@ namespace hyper
                             var count = match.Groups[2].Value;
                             var command = match.Groups[3].Value;
 
+                            if (count.IsNullOrEmpty())
+                            {
+                                count = "200";
+                            }
+
                             Common.logger.Info($"node: {nodeId} - count: {(count.IsNullOrEmpty() ? "all" : count)} - command: {(command.IsNullOrEmpty() ? "all" : command)}");
                             EventFilter filter = new EventFilter();
                             if (nodeId != 0)
