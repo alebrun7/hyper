@@ -656,6 +656,30 @@
     groups:
         3: 1
 
+-   deviceName: Fibaro Relais FGS-213
+    manufacturerId: 271
+    # productId: 4096
+    productTypeId: 1027
+    profile: default # will be used if no profile is specified in the command
+    groups:
+        1: 1 # Lifeline
+        2: 1 # On/Off (S1) # sendet BASIC_SET wenn S1 betätigt wird
+        4: 1 # On/Off (S2)
+    config:
+        20_1: 1 # 0: momentary, 1=toggle switch, 2(default):toggle switch (device changes status when switch changes status)
+
+-   deviceName: Fibaro Relais FGS-213
+    manufacturerId: 271
+    # productId: 4096
+    productTypeId: 1027
+    profile: rl_taster # will be used if no profile is specified in the command
+    groups:
+        1: 1 # Lifeline
+        2: 1 # On/Off (S1)
+        4: 1 # On/Off (S2)
+    config:
+        20_1: 0 # 0: momentary, 1=toggle switch, 2(default):toggle switch (device changes status when switch changes status)
+
 # Fibargroup FGSD002 Smoke Detector
 # https://manuals.fibaro.com/de/smoke-sensor/
 # https://www.opensmarthouse.org/zwavedatabase/878
