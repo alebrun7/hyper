@@ -255,6 +255,7 @@
         3_2: 60 #  Motion Untrigger Time 30~3600 (default=240)
         4_1: 11 # Motion Sensitivity (0-11, default=11)
         5_1: 1 # Motion Report Type: 0=notification, 1=Sensor Binary Report, 2=both, default=2
+        6_1: 0 # Vibration Sensor Enable/Disable (0 - disable vibration, default=255 - only send vibration triggered, does not timeout)
         39_1: 20 #Low Battery Threshold (10-90, default=50)
         #40_1: 0 # Threshold Check Enable/Disable (default 0 =disable)
         #48_1: 0 # Sensor Limit Control (bitmask)
@@ -285,6 +286,7 @@
         3_2: 60 #  Motion Untrigger Time 30~3600 (default=240)
         4_1: 11 # Motion Sensitivity (0-11, default=11)
         5_1: 1 # Motion Report Type: 0=notification, 1=Sensor Binary Report, 2=both, default=2
+        6_1: 0 # Vibration Sensor Enable/Disable (0 - disable vibration, default=255 - only send vibration triggered, does not timeout)
         39_1: 20 #Low Battery Threshold (10-90, default=50)
         #40_1: 0 # Threshold Check Enable/Disable (default 0 =disable)
         #48_1: 0 # Sensor Limit Control (bitmask)
