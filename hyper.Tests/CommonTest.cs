@@ -1,5 +1,8 @@
 ﻿using hyper.config;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NLog;
+using NLog.Config;
+using NLog.Targets;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -165,7 +168,11 @@ namespace hyper.Tests
         [TestMethod]
         public void ParseConfig_CheckAllEntries_ProfileNotEmpty()
         {
+            MemoryTarget logTarget = LoggingSetupHelperTest.SetupMemoryLogTarget();
+
             var configList = Common.ParseConfig("config.yaml");
+
+            Assert.IsNotNull(configList, String.Join("\r\n", logTarget.Logs));
             Assert.AreNotEqual(0, configList.Count);
             var configWithEmptyProfile = configList.Find(config => string.IsNullOrEmpty(config.profile));
             configList.ForEach(config =>
@@ -197,6 +204,12 @@ namespace hyper.Tests
                 productId = productId,
                 profile = profile
             }); ;
+        }
+
+        [TestCleanup]
+        public void TestCleanup()
+        {
+            LogManager.Configuration = new LoggingConfiguration(); //cleanup
         }
     }
 }
