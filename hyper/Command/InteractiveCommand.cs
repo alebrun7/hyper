@@ -113,7 +113,7 @@ namespace hyper
             var listenRegex = new Regex(@$"^listen\s*(stop|start|filter\s*({oneTo255Regex}))");
             var forceRemoveRegex = new Regex(@$"^remove\s*({oneTo255Regex})");
             var debugRegex = new Regex(@"^debug\s*(false|true)");
-            var lastEventsRegex = new Regex(@$"^show\s*({zeroTo255Regex})\s*({zeroTo255Regex})?\s*([a-zA-Z_]+)?");
+            var lastEventsRegex = new Regex(@$"^show\s*({zeroTo255Regex})\s*([0-9]+)?\s*([a-zA-Z_]+)?"); //nicht auf 255 einschränken!
             var multiRegex = new Regex(@$"^multi\s*({oneTo255Regex})\s*({zeroTo255Regex})\s*(false|true)");
             var rtr_setpointRegex = new Regex(@$"^rtr_setpoint\s*({oneTo255Regex})\s*(\d+\.?\d*)?");
             var rtr_modeRegex = new Regex(@$"^rtr_mode\s*({oneTo255Regex})\s*(\d+)?");
@@ -250,7 +250,8 @@ namespace hyper
                                 byte[] read = File.ReadAllBytes(filename);
                                 var result = Common.WriteNVRam(Program.controller, read);
                                 Common.logger.Info("Result is {0}", result);
-                                if (result) {
+                                if (result)
+                                {
                                     Program.controller.SerialApiGetInitData();
                                     Program.controller.MemoryGetId(); //refresh the HomeId
                                     var newHomeId = LogHomeId();
@@ -689,7 +690,8 @@ namespace hyper
             val = match.Groups[3].Value;
             var value = bool.Parse(val);
 
-            if (basicRequestNumbers.ContainsKey(nodeId)) {
+            if (basicRequestNumbers.ContainsKey(nodeId))
+            {
                 ++basicRequestNumbers[nodeId];
             }
             else
