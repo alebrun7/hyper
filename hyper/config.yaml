@@ -642,6 +642,16 @@
     groups:
         1: 1
 
+# TPS411 Touch Panel Switch (Single)
+# https://www.cd-jackson.com/index.php/zwave/zwave-device-database/zwave-device-list/devicesummary/526
+# https://www.opensmarthouse.org/zwavedatabase/526
+-   deviceName: TPS411 Touch Panel Switch (Single)
+    manufacturerId: 351 # (0x15F)
+    productTypeId: 12609 # (0x3141)
+    profile: default # will be used if no profile is specified in the command
+    groups:
+        1: 1
+
 -   deviceName: BeNext Panic Watch
     manufacturerId: 138
     productTypeId: 21
@@ -872,3 +882,23 @@
         20_1: 30 # auto report tick interval (default 30) in minutes
         21_1: 0 # disable temperature differential report
         22_1: 0 # disable illumination differential report
+
+# Fibaro Flood Sensor FGFS-101
+# https://www.opensmarthouse.org/zwavedatabase/408
+-   deviceName: Fibaro Flood Sensor FGFS-101
+    manufacturerId: 271 # (0x10F)
+    productTypeId: 2817 # (0xB01)
+    profile: default # will be used if no profile is specified in the command
+    groups:
+        1: 1 # Lifeline
+        2: 1 # Flood control: sends BASIC
+        #3: # Flood Alarm
+        #4: # Tamper Alarm
+    config:
+        7_2: 255 # (255=default) # Requested dimming level / roller blind opening level when sending turn on / open command to 2nd association group dev
+        10_4: 65535 # Temperature measurement interval - 1-65535 (in seconds), default=300
+        12_2: 200 # Temperature measurement hysteresis 1-1000 (each 0.01°C), default = 50
+        50_2: 500 # Low temperature alarm threshold - - 10000 to +10000 (each 0.01°C), default=1500
+        63_1: 0 # Temperature indication using LED visual indicator - default = 2, 0=off
+        #75_4: 0 # Alarms signalization duration - default=0 or 1-65535 in seconds
+    wakeup: 64800 # 18 hours - 0 or 60-86400 (1 Min - 24 hours)
