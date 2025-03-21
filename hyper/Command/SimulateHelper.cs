@@ -15,8 +15,8 @@ namespace hyper.Command
         private static Regex simulateOnOffRegex = new Regex(@$"^simulate\s+(false|true)"); //simulate true => simulation mode on
         private static Regex simulateSceneRegex = new Regex(
             @$"^simulate\s+({BaseCommand.OneTo255Regex})\s+(scene)\s*([1-4])\s*$");
-        private static Regex simulateBatRegex = new Regex(
-            @$"^simulate\s+({BaseCommand.OneTo255Regex})\s+(battery)\s*({BaseCommand.ZeroTo255Regex})\s*$");
+        private static Regex simulateOrHumRegex = new Regex(
+            @$"^simulate\s+({BaseCommand.OneTo255Regex})\s+(battery|humidity)\s*({BaseCommand.ZeroTo255Regex})\s*$");
 
         private Match match;
         private bool hasController;
@@ -27,7 +27,7 @@ namespace hyper.Command
                 (
                     simulateRegex.IsMatch(simulateVal) ||
                     simulateSceneRegex.IsMatch(simulateVal) ||
-                    simulateBatRegex.IsMatch(simulateVal)
+                    simulateOrHumRegex.IsMatch(simulateVal)
                 );
         }
 
@@ -45,9 +45,9 @@ namespace hyper.Command
             {
                 match = simulateSceneRegex.Match(simulateVal);
             }
-            else if (simulateBatRegex.IsMatch(simulateVal))
+            else if (simulateOrHumRegex.IsMatch(simulateVal))
             {
-                match = simulateBatRegex.Match(simulateVal);
+                match = simulateOrHumRegex.Match(simulateVal);
             }
             else
             {
@@ -99,6 +99,18 @@ namespace hyper.Command
                     Command = new COMMAND_CLASS_BATTERY.BATTERY_REPORT()
                     {
                         batteryLevel = byte.Parse(param3)
+                    };
+                    break;
+                case "humidity":
+                    Command = new COMMAND_CLASS_SENSOR_MULTILEVEL_V11.SENSOR_MULTILEVEL_REPORT()
+                    {
+                        properties1 = new COMMAND_CLASS_SENSOR_MULTILEVEL_V11.SENSOR_MULTILEVEL_REPORT.Tproperties1
+                        {
+                            size = 1,
+                            precision = 0
+                        },
+                        sensorType = 0x05,
+                        sensorValue = { byte.Parse(param3) }
                     };
                     break;
                 case "rtr":

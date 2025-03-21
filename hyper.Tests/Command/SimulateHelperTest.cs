@@ -171,6 +171,19 @@ namespace hyper.Tests.Command
             }
         }
 
+        [TestMethod]
+        public void SimulateHumidity_Recognized()
+        {
+            foreach (byte value in HumidityValues())
+            {
+                string command = $"simulate 3 humidity {value}";
+                Assert.IsTrue(SimulateHelper.MatchesSimulate(command));
+
+                var helper = new SimulateHelper(command, dummyController);
+                helper.CreateCommand();
+                CheckHumidityCommand(helper.Command, value);
+            }
+        }
 
         [TestMethod]
         public void SimulateWakeup_Recognized()
@@ -209,6 +222,17 @@ namespace hyper.Tests.Command
             Assert.AreEqual(value, cmd.batteryLevel);
         }
 
+        private void CheckHumidityCommand(object command, byte value)
+        {
+            Assert.IsNotNull(command);
+            Assert.AreEqual(typeof(COMMAND_CLASS_SENSOR_MULTILEVEL_V11.SENSOR_MULTILEVEL_REPORT), command.GetType());
+            var cmd = (COMMAND_CLASS_SENSOR_MULTILEVEL_V11.SENSOR_MULTILEVEL_REPORT)command;
+            Assert.AreEqual(0x05, cmd.sensorType);
+            Assert.AreEqual(1, cmd.properties1.size);
+            Assert.AreEqual(0, cmd.properties1.precision);
+            Assert.AreEqual(value, cmd.sensorValue[0]);
+        }
+
         private void CheckWakeupCommand(object command)
         {
             Assert.IsNotNull(command);
@@ -218,6 +242,11 @@ namespace hyper.Tests.Command
         private static byte[] BatteryValues()
         {
             return new byte[] { 0, 1, 10, 20, 50, 99, 100, 255 };
+        }
+
+        private static byte[] HumidityValues()
+        {
+            return new byte[] { 0, 1, 10, 20, 50, 99, 100 };
         }
 
         private void CheckCentralSceneCommand(object command, int sceneNumber)
