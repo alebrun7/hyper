@@ -12,3 +12,6 @@ deleteOldEventsMaxDaysToDelete: 10
 
 # Workaround for Buttons: space separated list of nodes needing the workaround
 workaroundForButtons:
+
+# where to send the device event
+udpIpAddress: 127.0.0.1

@@ -52,7 +52,8 @@ namespace hyper.config
         {
             ValidateParsedState();
             var val = config.GetValueOrDefault(key, defaultValue.ToString());
-            if (!string.IsNullOrEmpty(val)) {
+            if (!string.IsNullOrEmpty(val))
+            {
                 var stringValues = val.Split();
                 var ret = new int[stringValues.Length];
                 for (int i = 0; i < stringValues.Length; ++i)
@@ -65,6 +66,13 @@ namespace hyper.config
             {
                 return new int[0];
             }
+        }
+
+        public string GetStringValueOrDefault(string key, string defaultValue)
+        {
+            ValidateParsedState();
+            var val = config.GetValueOrDefault(key, defaultValue);
+            return val;
         }
 
         private void ValidateParsedState()

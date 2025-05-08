@@ -44,7 +44,9 @@ namespace hyper
 
         private static void SetupOutputs(InputManager inputManager)
         {
-            var udpOutput = new UDPOutput("127.0.0.1", 54321, inputManager);
+            string ipAddress = programConfig.GetStringValueOrDefault("udpIpAddress", "127.0.0.1");
+            Common.logger.Info("Starting UDPOutput with destination address " + ipAddress);
+            var udpOutput = new UDPOutput(ipAddress, 54321, inputManager);
             var databaseOutput = new DatabaseOutput("events.db");
             OutputManager.AddOutput(udpOutput);
             OutputManager.AddOutput(databaseOutput);
@@ -55,6 +57,9 @@ namespace hyper
             //Test Version
             //Console.WriteLine("The version of the currently executing assembly is: {0}",
             //typeof(Program).Assembly.GetName().Version);
+
+            programConfig = new ProgramConfig();
+            programConfig.LoadFromFile();
 
             //return;
             InputManager inputManager = new InputManager();
@@ -80,8 +85,6 @@ namespace hyper
             Program.configList = config;
             Common.logger.Info("Got configuration for " + config.Count + " devices.");
 
-            programConfig = new ProgramConfig();
-            programConfig.LoadFromFile();
 
             Common.logger.Info("-----------------------------------");
 
