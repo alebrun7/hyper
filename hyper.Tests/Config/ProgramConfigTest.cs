@@ -13,7 +13,7 @@ namespace hyper.Tests.Config
     [TestClass]
     public class ProgramConfigTest
     {
-        string configExample = "numRetriesForBasic: 0\r\nretryDelayForBasic: 10\r\nretryDelaysForBasic: 5 10 20 40 60 60 60 60 60 60 60 60 60 60\r\n";
+        string configExample = "numRetriesForBasic: 0\r\nretryDelayForBasic: 10\r\nretryDelaysForBasic: 5 10 20 40 60 60 60 60 60 60 60 60 60 60\r\nudpIpAddress: 127.0.0.2\r\n";
 
         [TestMethod]
         public void ParseTest()
@@ -78,6 +78,25 @@ namespace hyper.Tests.Config
             Assert.AreEqual(0, actual.Length);
         }
 
+
+        [TestMethod]
+        public void ReadStringValueTest()
+        {
+            var programConfig = new ProgramConfig();
+            programConfig.Parse(configExample);
+            string actual = programConfig.GetStringValueOrDefault("udpIpAddress", "127.0.0.1");
+            Assert.AreEqual("127.0.0.2", actual);
+        }
+
+        [TestMethod]
+        public void ReadStringValue_ValueNonExisting_ReturnsDefault()
+        {
+            var programConfig = new ProgramConfig();
+            programConfig.Parse(configExample);
+            string actual = programConfig.GetStringValueOrDefault("notExisting", "127.0.0.3");
+            Assert.AreEqual("127.0.0.3", actual);
+        }
+
         [TestMethod]
         public void LoadFromFileTest()
         {
@@ -94,6 +113,7 @@ namespace hyper.Tests.Config
             config.Add("numRetriesForBasic", "0");
             config.Add("retryDelayForBasic", "10");
             config.Add("retryDelaysForBasic", "5 10 20 40 60 60 60 60 60 60 60 60 60 60");
+            config.Add("udpIpAddress", "127.0.0.2");
 
             var serializer = new SerializerBuilder().WithNamingConvention(CamelCaseNamingConvention.Instance).Build();
             var yaml = serializer.Serialize(config);
