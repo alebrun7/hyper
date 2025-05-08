@@ -29,6 +29,7 @@ namespace hyper
         private EventDAO eventDao = new EventDAO();
         private readonly object lockObject = new object();
         private Dictionary<byte, DateTime> lastBatteryTimes = new Dictionary<byte, DateTime>();
+        private int minBatteryIntervall;
 
         public static bool IsMatch(string cmd)
         {
@@ -100,6 +101,7 @@ namespace hyper
             Common.logger.Info("Got {0} command classes", commandClasses.Count);
             var nestedCommandClasses = Common.GetAllNestedCommandClasses(commandClasses.Values);
             Common.logger.Info("Got all inner command classes for {0} command classes", commandClasses.Count);
+            ReadProgramConfig();
             Common.logger.Info("Listening...");
 
             //byte[] numArray = File.ReadAllBytes(@"C:\Users\james\Desktop\tmp\MultiSensor 6_OTA_EU_A_V1_13.exe");
@@ -222,7 +224,13 @@ namespace hyper
             return true;
         }
 
-        private void RequestBatteryIfNeeded(byte nodeId)
+        public void ReadProgramConfig()
+        {
+            //default  17 hours, slighty smaller than the common 18 hours wakeup interval
+            minBatteryIntervall = Program.programConfig.GetIntValueOrDefault("minBatteryIntervall", 17);
+        }
+
+            private void RequestBatteryIfNeeded(byte nodeId)
         {
             if (NeedsBatteryValue(nodeId))
             {
@@ -252,8 +260,7 @@ namespace hyper
             if (lastBatteryTimes.TryGetValue(srcNodeId, out lastTime))
             {
                 var age = DateTime.Now - lastTime;
-                //17 hours ist slighty smaller than the common 18 hours wakeup interval
-                return age > new TimeSpan(17, 0, 0); //seventeen hours;
+                return age > new TimeSpan(minBatteryIntervall, 0, 0);
             }
             return true;
         }
