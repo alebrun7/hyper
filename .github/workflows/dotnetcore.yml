@@ -22,7 +22,7 @@ jobs:
       - name: Save URL
         run: echo "${{ steps.create_release.outputs.upload_url }}" >> url.txt
       - name: Upload URL
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: url
           path: url.txt
@@ -47,7 +47,7 @@ jobs:
     - name: ${{ matrix.os }} - Compress output
       run: tar cfJ publish${{ matrix.os }}.tar.xz publish${{ matrix.os }}
     - name: Download url
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: url
     - name: set url
