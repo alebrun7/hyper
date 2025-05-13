@@ -47,7 +47,7 @@ jobs:
     - name: ${{ matrix.os }} - Compress output
       run: tar cfJ publish${{ matrix.os }}.tar.xz publish${{ matrix.os }}
     - name: Download url
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v3
       with:
         name: url
     - name: set url
