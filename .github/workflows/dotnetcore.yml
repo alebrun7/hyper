@@ -50,9 +50,9 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: url
-        path: url.txt
+        path: url
     - name: set url
-      run: echo "::set-env name=UPLOAD_URL::$(cat url.txt)"
+      run: echo "::set-env name=UPLOAD_URL::$(cat url/url.txt)"
       env:
         ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
     - name: ${{ matrix.os }} - Upload Release Asset
