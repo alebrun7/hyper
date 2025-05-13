@@ -52,7 +52,7 @@ jobs:
         name: url
         path: url.txt
     - name: set url
-      run: echo "::set-env name=UPLOAD_URL::$(cat url/url.txt)"
+      run: echo "::set-env name=UPLOAD_URL::$(cat url.txt)"
       env:
         ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
     - name: ${{ matrix.os }} - Upload Release Asset
