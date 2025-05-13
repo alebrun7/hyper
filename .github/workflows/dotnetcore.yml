@@ -7,7 +7,7 @@ on:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - name: Create Release
         id: create_release
@@ -29,7 +29,7 @@ jobs:
   build:
     name: Build
     needs: release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         os: [linux-arm, win-x64, linux-x64, win7-x64, win10-x64]
