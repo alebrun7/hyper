@@ -104,8 +104,33 @@ namespace hyper.Tests
             Assert.AreEqual(1, logTarget.Logs.Count);
             logger.Info("Test info msg without debug mode");
             Assert.AreEqual(2, logTarget.Logs.Count);
-
         }
+
+        [TestMethod]
+        public void LogException_ExceptionLoggedWithStackTrace()
+        {
+            MemoryTarget logTarget = SetupMemoryLogTarget();
+            logTarget.Layout = LoggingSetupHelper.Layout;
+            Logger logger = LogManager.GetCurrentClassLogger();
+            try
+            {
+                ThrowException();
+            }
+            catch (System.NullReferenceException e)
+            {
+                logger.Error(e, "forced Exception");
+            }
+            Assert.AreEqual(1, logTarget.Logs.Count);
+            Assert.IsTrue(logTarget.Logs[0].Contains("NullReferenceException"), "Exception name missing in " + logTarget.Logs[0]);
+            Assert.IsTrue(logTarget.Logs[0].Contains("LogException_ExceptionLoggedWithStackTrace"), "Stack trace missing");
+        }
+
+        private static void ThrowException()
+        {
+            string s = null;
+            int l = s.Length;
+        }
+
         [TestCleanup]
         public void TestCleanup()
         {

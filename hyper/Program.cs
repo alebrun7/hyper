@@ -23,11 +23,11 @@ namespace hyper
         {
             var tcpTarget = new TCPInput(5432)
             {
-                Layout = @"${longdate} ${uppercase:${level}} ${message}"
+                Layout = LoggingSetupHelper.Layout
             };
             var consoleTarget = new ConsoleInput()
             {
-                Layout = @"${longdate} ${uppercase:${level}} ${message}"
+                Layout = LoggingSetupHelper.Layout
             };
 
             LoggingSetupHelper.SetupLogging(tcpTarget, consoleTarget);

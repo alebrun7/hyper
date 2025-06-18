@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace hyper.Output
 {
@@ -15,7 +16,24 @@ namespace hyper.Output
         {
             foreach (var output in Outputs)
             {
-                output.HandleCommand(command, srcNodeId, destNodeId);
+                try
+                {
+                    output.HandleCommand(command, srcNodeId, destNodeId);
+                }
+                catch (Exception e)
+                {
+                    Common.logger.Error(e, "Exception caught in OutputManager.HandleCommand()");
+                    Common.logger.Error($"srcNodeId={srcNodeId}, destNodeId={destNodeId}");
+                    if (command == null)
+                    {
+                        Common.logger.Error("command is null!");
+                    }
+                    else
+                    {
+                        string commanType = command.GetType().FullName;
+                        Common.logger.Error($"command is {commanType}");
+                    }
+                }
             }
         }
 

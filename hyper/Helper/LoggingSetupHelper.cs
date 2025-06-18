@@ -11,12 +11,20 @@ namespace hyper.Helper
 {
     public class LoggingSetupHelper
     {
+        public static string Layout
+        {
+            get
+            {
+                return "${longdate} ${uppercase:${level}} ${message} ${exception:format=toString}";
+            }
+        }
+
         public static void SetupLogging(Target tcpTarget, Target consoleTarget)
         {
             var fileTarget = new FileTarget()
             {
                 Name = "FileTarget",
-                Layout = @"${longdate} ${uppercase:${level}} ${message}",
+                Layout = Layout,
                 AutoFlush = true,
                 FileName = "${basedir}/logs/log.${shortdate}.txt",
                 ArchiveFileName = "${basedir}/logs/archives/log.{#####}.zip",
