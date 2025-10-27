@@ -808,7 +808,16 @@
     profile: default
     groups:
         1: 1 # sends Scene Central and Battery
-        2: 1 # send BASIC_SET
+
+# Technisat Szenenschalter 1
+# https://www.opensmarthouse.org/zwavedatabase/488
+-   deviceName: Technisat Szenenschalter 1
+    manufacturerId: 520 # (0x0208) Hank
+    productTypeId: 512 # (0x0200) #könnte auch 513 sein
+    productId: 11 # (0xB)
+    profile: default
+    groups:
+        1: 1 # sends Scene Central and Battery
 
 # McoHome Technology Co., Ltd MH7H Water / Electrical Heating Thermostat V2
 # https://www.opensmarthouse.org/zwavedatabase/1369 # has wrong/old productTypeId

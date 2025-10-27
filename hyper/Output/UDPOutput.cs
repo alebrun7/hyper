@@ -168,6 +168,13 @@ namespace hyper.Output
                         values = BitConverter.GetBytes((short)value);
                         break;
                     }
+                case COMMAND_CLASS_CENTRAL_SCENE_V3.CENTRAL_SCENE_NOTIFICATION sceneNotification:
+                    {
+                        commandClass = BitConverter.GetBytes((short)COMMAND_CLASS_CENTRAL_SCENE_V3.ID);
+                        var value = sceneNotification.sceneNumber;
+                        values = BitConverter.GetBytes((short)value);
+                        break;
+                    }
                 case COMMAND_CLASS_WAKE_UP_V2.WAKE_UP_NOTIFICATION wakeUpNotification:
                     {
                         //only for workaround, not for alfred
