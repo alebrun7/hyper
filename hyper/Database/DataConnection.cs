@@ -9,7 +9,7 @@ namespace hyper.Database
         {
         }
 
-        public ITable<Event> Event => GetTable<Event>();
+        public ITable<Event> Event => this.GetTable<Event>();
 
         // ... other tables ...
     }

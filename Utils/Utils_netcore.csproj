@@ -14,10 +14,10 @@
     <Delete Files="@(FilesToDelete)" />
   </Target>
   <ItemGroup>
-    <PackageReference Include="System.IO.Ports" Version="4.7.0" />
-    <PackageReference Include="System.IO.Packaging" Version="4.7.0" />
+    <PackageReference Include="System.IO.Ports" Version="9.0.10" />
+    <PackageReference Include="System.IO.Packaging" Version="9.0.10" />
   </ItemGroup>
-	<ItemGroup >
+	<ItemGroup>
 		<Compile Include="**\*.cs" Exclude="WinBased\**;obj\**" />
 	</ItemGroup>
 </Project>
