@@ -2,8 +2,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <AssemblyName>ZWaveBasicApplication</AssemblyName>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-    <RuntimeIdentifiers>win-x64;win-arm;ubuntu-x64;debian-arm;linux-arm</RuntimeIdentifiers>
+    <TargetFramework>net8</TargetFramework>
+    <RuntimeIdentifiers>win-x64;win-arm;linux-x64;linux-arm;linux-arm64</RuntimeIdentifiers>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <Target Name="ClearObjFolderTarget" BeforeTargets="Restore">

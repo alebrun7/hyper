@@ -28,13 +28,10 @@ namespace hyper.Helper
                 AutoFlush = true,
                 FileName = "${basedir}/logs/log.${shortdate}.txt",
                 ArchiveFileName = "${basedir}/logs/archives/log.{#####}.zip",
-                ArchiveNumbering = ArchiveNumberingMode.DateAndSequence,
-                ConcurrentWrites = true,
+                ArchiveSuffixFormat = "_{1:yyyMMdd}_{0:00}",
                 ArchiveEvery = FileArchivePeriod.Day,
                 ArchiveOldFileOnStartup = true,
-                EnableArchiveFileCompression = true,
                 MaxArchiveFiles = 14,
-                OptimizeBufferReuse = true,
                 CreateDirs = true
             };
 

@@ -2,9 +2,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <AssemblyName>Utils</AssemblyName>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-    <RuntimeIdentifiers>win-x64;win-arm;ubuntu-x64;debian-arm;linux-arm</RuntimeIdentifiers>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <TargetFramework>net8</TargetFramework>
+    <RuntimeIdentifiers>win-x64;win-arm;linux-x64;linux-arm;linux-arm64</RuntimeIdentifiers>
+	  <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 	<EnableDefaultCompileItems>False</EnableDefaultCompileItems>
   </PropertyGroup>
   <Target Name="ClearObjFolderTarget" BeforeTargets="Restore">
@@ -17,7 +17,7 @@
     <PackageReference Include="System.IO.Ports" Version="4.7.0" />
     <PackageReference Include="System.IO.Packaging" Version="4.7.0" />
   </ItemGroup>
-	<ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
+	<ItemGroup >
 		<Compile Include="**\*.cs" Exclude="WinBased\**;obj\**" />
 	</ItemGroup>
 </Project>

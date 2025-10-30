@@ -153,9 +153,9 @@ namespace hyper.Tests
             string resourcePath = assembly.GetManifestResourceNames()
                 .Single(str => str.EndsWith("test.nlog.config"));
             using (Stream xmlStream = assembly.GetManifestResourceStream(resourcePath))
-            using (var xmlReader = System.Xml.XmlReader.Create(xmlStream))
+            using (var textReader = new StreamReader(xmlStream))
             {
-                return new NLog.Config.XmlLoggingConfiguration(xmlReader, null);
+                return new NLog.Config.XmlLoggingConfiguration(textReader, null);
             }
         }
     }
