@@ -2,9 +2,9 @@
 
   <PropertyGroup>
 	<TargetFramework>net8</TargetFramework>
-	<RuntimeIdentifiers>win-x64;win-arm;linux-x64;linux-arm;linux-arm64</RuntimeIdentifiers>
+	<RuntimeIdentifiers>win-x64;linux-x64;linux-arm;linux-arm64</RuntimeIdentifiers>
 
-	<IsPackable>false</IsPackable>
+	  <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

@@ -3,7 +3,7 @@
   <PropertyGroup>
     <AssemblyName>ZWave</AssemblyName>
     <TargetFramework>net8</TargetFramework>
-    <RuntimeIdentifiers>win-x64;win-arm;linux-x64;linux-arm;linux-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>win-x64;linux-x64;linux-arm;linux-arm64</RuntimeIdentifiers>
 	  <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <Target Name="ClearObjFolderTarget" BeforeTargets="Restore">
@@ -12,7 +12,12 @@
     </ItemGroup>
     <Delete Files="@(FilesToDelete)" />
   </Target>
-   <ItemGroup Condition="$(RuntimeIdentifier.Contains('win'))">
+  <Target Name="_FixRootAssembly" AfterTargets="PrepareForILLink">
+    <ItemGroup>
+      <TrimmerRootAssembly Update="@(TrimmerRootAssembly)" Condition=" '%(TrimmerRootAssembly.RootMode)' == 'EntryPoint' " RootMode="Library" />
+    </ItemGroup>
+  </Target>
+  <ItemGroup Condition="$(RuntimeIdentifier.Contains('win'))">
     <Content Include="..\lib\CryptoLibraryS2\s2crypto32.dll" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="..\lib\CryptoLibraryS2\s2crypto64.dll" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
