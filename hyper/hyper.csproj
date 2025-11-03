@@ -15,8 +15,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="linq2db" Version="5.4.1.9" />
-    <PackageReference Include="linq2db.SQLite" Version="5.4.1.9" />
+    <PackageReference Include="linq2db" Version="3.5.1" />
+    <PackageReference Include="linq2db.SQLite" Version="3.5.1" />
     <PackageReference Include="NetCoreServer" Version="8.0.7" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="NLog" Version="6.0.5" />
