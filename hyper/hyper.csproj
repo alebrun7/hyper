@@ -34,8 +34,11 @@
   <ItemGroup Condition="'$(RuntimeIdentifier)' == 'linux-arm'">
     <Content Include="..\lib\linux-arm\libSQLite.Interop.dll" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+	<ItemGroup Condition="'$(RuntimeIdentifier)' == 'linux-arm64'">
+		<Content Include="..\lib\linux-arm64\SQLite.Interop.dll" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
 
-  <ItemGroup>
+	<ItemGroup>
     <None Update="20_ZStickGen5.rules">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
